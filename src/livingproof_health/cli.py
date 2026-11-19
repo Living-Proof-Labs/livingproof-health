@@ -56,25 +56,58 @@ def read_replay(path):
 @click.option(
     "--topic", default="/base_pose", show_default=True, help="JSON PoseInFrame channel (metres)."
 )
-def replay(recording, topic):
+@click.option(
+    "--limits",
+    "limits_path",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="JSON budget overrides (<=4 KiB); each limit has a documented hard ceiling.",
+)
+@click.option(
+    "--output",
+    type=click.Path(dir_okay=False, path_type=Path),
+    help="Atomically replace a JSON file only after complete validation; default stdout.",
+)
+def replay(recording, topic, limits_path, output):
     """Convert MCAP to portable health JSON on stdout, preserving every pose sample.
 
     Example: livingproof-health replay trial.mcap > health.json
     MCAP log_time is the clock. JSON timestamps are decimal strings (not numbers).
     Input must use the simulation recorder's
     JSON PoseInFrame schema; selecting it does not establish hardware provenance.
+    Input/output resource limits apply; see docs/bounded-replay.md for defaults and overrides.
+    No partial JSON is emitted on validation/budget failure. For atomic files, use --output.
     Next: livingproof-health seek health.json --time-ns 20000000
     """
     from mcap.exceptions import McapError
     from .recording import read_mcap
+    from .bounds import Limits, replay_json
+    import os
+    import shutil
+    import tempfile
+    import sys
 
     try:
-        result = read_mcap(recording, topic=topic)
-    except (ValueError, OSError, McapError, EOFError, StructError) as exc:
+        limits = Limits.from_file(limits_path) if limits_path else Limits()
+        result = read_mcap(recording, topic=topic, limits=limits)
+        with replay_json(result, limits) as stream:
+            if output is None:
+                shutil.copyfileobj(stream, sys.stdout.buffer, length=65536)
+            else:
+                pending = None
+                try:
+                    with tempfile.NamedTemporaryFile(
+                        dir=output.parent, prefix=".health-", delete=False
+                    ) as destination:
+                        pending = Path(destination.name)
+                        shutil.copyfileobj(stream, destination, length=65536)
+                    os.replace(pending, output)
+                finally:
+                    if pending is not None:
+                        pending.unlink(missing_ok=True)
+    except (ValueError, OSError, McapError, EOFError, StructError, RecursionError) as exc:
         raise click.ClickException(
             f"Cannot read pose recording: {str(exc) or 'empty or truncated MCAP'}. See 'replay --help'."
         ) from exc
-    click.echo(result.to_json(), nl=False)
 
 
 @health.command()
