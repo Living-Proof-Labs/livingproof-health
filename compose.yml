@@ -1,0 +1,9 @@
+services:
+  development:
+    build:
+      context: .
+      target: development
+    working_dir: /workspace/health
+    volumes:
+      - .:/workspace/health
+    init: true
