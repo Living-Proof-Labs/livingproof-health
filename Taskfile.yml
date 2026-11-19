@@ -35,7 +35,7 @@ tasks:
     platforms: [linux]
     desc: Run setup and all tests, including installed host CLI integration, in Docker
     cmds:
-      - docker compose run --rm --user "$(id -u):$(id -g)" -e LIVINGPROOF_NETWORK=1 development bash -c 'task setup && task verify'
+      - docker compose run --rm --user "$(id -u):$(id -g)" -e LIVINGPROOF_NETWORK=1 development timeout 300 bash -c 'task setup && task verify'
   dev:shell:
     platforms: [linux]
     desc: Open the development container and set up its environment

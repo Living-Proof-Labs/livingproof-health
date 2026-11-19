@@ -1,12 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
-# This repository has no published development image yet. Until one exists,
-# these jobs are the documented fallback: GitHub-hosted ubuntu-24.04 and
-# ubuntu-24.04-arm, the pinned uv setup action, and Task 3.54.0, running the
-# same `task setup` and `task verify` commands as a local checkout. Publishing
-# a development image needs owner approval and registry permissions outside
-# bootstrap issue #2. Image publication is tracked in:
-# https://github.com/Living-Proof-Labs/livingproof-health/issues/4
-# This fallback runs Task directly; it does not build or exercise Docker.
+# Build the unpublished development image locally until registry publication (#4).
+# Adversarial cases run only inside this memory/time-constrained Docker environment.
 name: Verify
 on:
   pull_request:
@@ -43,19 +37,33 @@ jobs:
           # Full history and tags so hatch-vcs and provenance read release tags.
           fetch-depth: 0
           fetch-tags: true
-      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
-        with:
-          python-version: "3.12"
-      - uses: go-task/setup-task@a00fbb05ce67b35648be3c78cbc9fd85354c757e # v2.2.0
-        with:
-          version: "3.54.0"
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: "22.23.5"
-      - run: task setup
-      - run: task verify
+      - name: Build local test image
+        run: docker build --target development -t health-test .
+      - name: Prepare dependencies inside constrained Docker
+        run: |
+          mkdir -p "$RUNNER_TEMP/health-deps"
+          docker run --rm --memory=512m --memory-swap=512m --cpus=2 --pids-limit=128 \
+            --user "$(id -u):$(id -g)" \
+            -v "$PWD:/workspace/health" -v "$RUNNER_TEMP/health-deps:/tmp" health-test \
+            timeout --kill-after=5 300 bash tools/review/prepare.sh
+      - name: Verify offline inside constrained Docker
         env:
-          LIVINGPROOF_NETWORK: "1"
+          REVIEW_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          docker run --rm --network=none --memory=512m --memory-swap=512m --cpus=2 --pids-limit=128 \
+            --user "$(id -u):$(id -g)" -e REVIEW_HEAD \
+            -v "$PWD:/workspace/health" -v "$RUNNER_TEMP/health-deps:/tmp" health-test \
+            timeout --kill-after=5 300 bash tools/review/verify.sh
+      - name: Retain reconstructed review probes
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: reconstructed-review-${{ matrix.architecture }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            artifacts/review-zstd/
+            artifacts/review-zstd-command.log
+          retention-days: 30
+          if-no-files-found: error
       - name: Publish test results
         if: ${{ !cancelled() }}
         continue-on-error: true
@@ -75,13 +83,22 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           PUBLISH_CHECK: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
-        run: python tools/test_results.py --name "Health tests (${{ matrix.architecture }})" --path artifacts/tests.xml --publish-check "$PUBLISH_CHECK"
+        run: |
+          docker run --rm --memory=512m --memory-swap=512m --cpus=2 --pids-limit=128 \
+            --user "$(id -u):$(id -g)" \
+            -e GITHUB_TOKEN -e GITHUB_REPOSITORY -e HEAD_SHA -e PUBLISH_CHECK \
+            -e GITHUB_OUTPUT -e GITHUB_STEP_SUMMARY \
+            -v "$PWD:/workspace/health" -v "$RUNNER_TEMP:$RUNNER_TEMP" health-test \
+            timeout --kill-after=5 60 python tools/test_results.py \
+              --name "Health tests (${{ matrix.architecture }})" --path artifacts/tests.xml --publish-check "$PUBLISH_CHECK"
       - name: Retain the JUnit report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: junit-report-${{ matrix.architecture }}-${{ github.event.pull_request.head.sha || github.sha }}
-          path: artifacts/tests.xml
+          path: |
+            artifacts/tests.xml
+            artifacts/bounds/*.json
           retention-days: 30
           if-no-files-found: error
       - name: Summarize test results
@@ -101,8 +118,11 @@ jobs:
           ACTIONLINT_ARCHIVE: ${{ matrix.actionlint_archive }}
           ACTIONLINT_SHA256: ${{ matrix.actionlint_sha256 }}
         run: |
-          curl -fsSL -o "$RUNNER_TEMP/$ACTIONLINT_ARCHIVE" \
-            "https://github.com/rhysd/actionlint/releases/download/v1.7.12/$ACTIONLINT_ARCHIVE"
-          echo "$ACTIONLINT_SHA256  $RUNNER_TEMP/$ACTIONLINT_ARCHIVE" | sha256sum -c -
-          tar -xzf "$RUNNER_TEMP/$ACTIONLINT_ARCHIVE" -C "$RUNNER_TEMP" actionlint
-          "$RUNNER_TEMP/actionlint" -color
+          docker run --rm --memory=512m --memory-swap=512m --cpus=2 --pids-limit=128 \
+            --user "$(id -u):$(id -g)" -e ACTIONLINT_ARCHIVE -e ACTIONLINT_SHA256 \
+            -v "$PWD:/workspace/health:ro" health-test timeout --kill-after=5 60 bash -ec '
+              curl -fsSL -o "/tmp/$ACTIONLINT_ARCHIVE" \
+                "https://github.com/rhysd/actionlint/releases/download/v1.7.12/$ACTIONLINT_ARCHIVE"
+              echo "$ACTIONLINT_SHA256  /tmp/$ACTIONLINT_ARCHIVE" | sha256sum -c -
+              tar -xzf "/tmp/$ACTIONLINT_ARCHIVE" -C /tmp actionlint
+              /tmp/actionlint -color'

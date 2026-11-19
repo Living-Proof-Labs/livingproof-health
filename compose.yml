@@ -7,3 +7,9 @@ services:
     volumes:
       - .:/workspace/health
     init: true
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 2
+    pids_limit: 128
+    environment:
+      HEALTH_BOUNDED_TESTS: "1"
