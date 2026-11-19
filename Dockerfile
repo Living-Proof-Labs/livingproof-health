@@ -33,7 +33,8 @@ COPY . /workspace/health
 ENV UV_PROJECT_ENVIRONMENT=/opt/replay-example PATH=/opt/replay-example/bin:$PATH
 RUN --mount=type=secret,id=ca,required=false \
     if [ -f /run/secrets/ca ]; then export SSL_CERT_FILE=/run/secrets/ca GIT_SSL_CAINFO=/run/secrets/ca UV_SYSTEM_CERTS=true; fi; \
-    uv sync --locked --no-editable --no-python-downloads
+    uv sync --locked --no-editable --no-python-downloads && \
+    chmod -R a+rX /workspace/health /opt/replay-example
 USER vscode
 ENTRYPOINT ["python", "/workspace/health/examples/recorded-replay/demo.py"]
 CMD ["--output", "/output/demo"]
