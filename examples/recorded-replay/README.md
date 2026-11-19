@@ -2,7 +2,8 @@
 
 This development example runs the **installed Health host plugin** on the retained
 original G1 MCAP, then invokes the actual pinned scenario evaluator. It produces
-portable JSON and a readable report without a viewer, server or paid service.
+portable JSON, a readable report and a local HTML viewer without an external
+viewer, server or paid service.
 It is a Health integration example, not the general scenario binding runner.
 
 ## Prepare once, run offline
@@ -29,6 +30,7 @@ docker run --rm --network none --user "$(id -u):$(id -g)" \
 
 Open `artifacts/replay-example/demo/comparison.md`. The adjacent files are:
 
+- `viewer.html`: self-contained visual replay (browser acceptance currently blocked; see below).
 - `replay.json`: portable Health snapshots; nanosecond timestamps are strings.
 - `comparison.json`: input SHA-256, paired observation hash/run identity,
   expectation, frame, interval, measured sampling, each separate result and limits.
@@ -127,3 +129,69 @@ failures. Existing tests retain epoch-nanosecond, brief-dip and single-instant
 coverage. The image build excludes `.git`, so its Health version may use the
 source-archive fallback; independent-review evidence identifies the exact commit
 and resulting image digest. The development image is built locally, not published.
+
+## Portable visual replay (draft; browser evidence blocked)
+
+The same offline Docker example now also emits **`viewer.html`**. Copy that one
+file anywhere and open it directly in a local browser (for example, File → Open,
+then select `artifacts/replay-example/demo/viewer.html`). It embeds the replay,
+comparison, styles and JavaScript; no CDN, server or network request is needed.
+No Pages/manual or image-publication adoption is implied.
+
+Presentation semantics are deliberately separate from `Replay.seek`:
+
+- The display selects the latest snapshot **at or before** the exact playhead.
+  `Replay.seek` remains first at/after, unchanged.
+- Duplicate timestamp ties use the **last snapshot in stable file order**.
+  The slider and previous/next controls move between distinct recorded times;
+  every duplicate remains inspectable in the full-snapshot section.
+- Before the first timestamp, there is no observation. After the last, the last
+  snapshot is displayed with an explicit age and after-last notice. Empty input
+  is valid and disables sample controls. Time-only input shows “Not reported”.
+- Between timestamps, the gap interval and exact observation age are visible.
+  Missing fields are never copied from another snapshot, even across duplicates.
+  There is no interpolation and no inference that old/absent evidence is healthy.
+- The slider uses only bounded array indices. Enter arbitrary nonnegative decimal
+  nanoseconds in **Exact playhead** and press Enter or Go to time. Lookup, playhead,
+  observation timestamp and age use JavaScript `BigInt`; epoch times do not pass
+  through `Number`. Arrow keys on the slider move between distinct timestamps.
+- Optional height/frame/posture are conveniences. All arbitrary optional items and
+  full duplicate snapshots remain inspectable as text. Scenario comparisons are
+  in their own section and do not describe health at the playhead.
+
+The HTML generator escapes raw-text script delimiters in embedded JSON. Robot
+labels, values, frames and provenance are assigned via `textContent`, never HTML.
+The artifact also declares a no-network content policy. Genuine fixture provenance
+and recorded-sample limitations remain visible; synthetic browser fixtures are
+explicitly labeled synthetic, not robot evidence.
+
+### Verification and the current evidence gap
+
+Ordinary `task verify` exercises the actual presentation lookup in Node.js,
+including adjacent epoch nanoseconds, duplicate ties, backward lookups, gaps and
+boundaries. It checks safe HTML embedding and generation through the real example, plus
+actual generated control-script behavior against a minimal DOM model (not a browser).
+These tests **do not establish rendering, keyboard behavior or screenshot quality**.
+
+The retained browser checker generates genuine, synthetic and empty viewers, opens
+`file://` pages in an offline Chromium context, asserts interaction and injection
+behavior, and captures desktop/390-pixel screenshots. Run on an environment whose
+browser permits opening local files:
+
+```sh
+# One-time verification-only setup (outside Health runtime dependencies):
+python -m venv /tmp/health-browser-check
+/tmp/health-browser-check/bin/pip install -r tools/visual-replay/requirements.txt
+# Health's locked development environment must already be prepared via task setup.
+/tmp/health-browser-check/bin/python tools/visual-replay/check_browser.py \
+  --python "$PWD/.venv/bin/python" --browser /usr/bin/chromium \
+  --output artifacts/visual-replay-browser-new
+```
+
+The implementation executor has Chromium and Playwright, but its first local-page
+navigation failed with **`net::ERR_BLOCKED_BY_ADMINISTRATOR`**. No browser policy
+was changed, no server was substituted, and no screenshot or visual verification
+is claimed. [Retained attempt and status](../../docs/evidence/visual-replay) identify
+what remains unverified. The viewer must stay draft pending an authorized local
+browser run, actual screenshot inspection, and independent review. Issue #1 stays
+open; core contracts, validators and producers are unchanged.
