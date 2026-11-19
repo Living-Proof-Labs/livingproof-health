@@ -24,6 +24,10 @@ On a host with Docker and Compose, run:
 task dev:verify
 ```
 
+This Docker command enables the online installed-host integration test. CI uses
+the documented Ubuntu fallback and does not exercise Docker. See the README
+for the image-publication (#4) and generated-manual (#5) follow-ups.
+
 Keep Health observations separate from scenario pass/fail criteria, preserve
 missing-data semantics (missing data is not healthy data), and do not introduce
 ROS, Foxglove, or paid-service requirements into the core package or plugin.

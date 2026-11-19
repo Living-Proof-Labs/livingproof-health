@@ -18,3 +18,10 @@ Local additions:
 - Substantive changes stay in a draft PR until independent review.
 - Do not enable new registry/security permissions, repository settings, or
   deployment changes without explicit authorization.
+
+Scoped bootstrap deferrals from the shared image/manual adoption requirements:
+- Unpublished development image: use the documented Ubuntu CI fallback and local
+  development-container build until [#4](https://github.com/Living-Proof-Labs/livingproof-health/issues/4).
+- Generated manual/Pages: adoption remains incomplete and is tracked separately
+  in [#5](https://github.com/Living-Proof-Labs/livingproof-health/issues/5).
+These deferrals preserve #2's exclusion of settings and deployment changes.

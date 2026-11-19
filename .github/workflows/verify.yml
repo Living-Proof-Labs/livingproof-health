@@ -4,7 +4,9 @@
 # ubuntu-24.04-arm, the pinned uv setup action, and Task 3.54.0, running the
 # same `task setup` and `task verify` commands as a local checkout. Publishing
 # a development image needs owner approval and registry permissions outside
-# bootstrap issue #2.
+# bootstrap issue #2. Image publication is tracked in:
+# https://github.com/Living-Proof-Labs/livingproof-health/issues/4
+# This fallback runs Task directly; it does not build or exercise Docker.
 name: Verify
 on:
   pull_request:
@@ -52,7 +54,6 @@ jobs:
         env:
           LIVINGPROOF_NETWORK: "1"
       - name: Publish test results
-        id: report
         if: ${{ !cancelled() }}
         continue-on-error: true
         uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
@@ -64,6 +65,7 @@ jobs:
           fail-on-error: "true"
           fail-on-empty: "true"
       - name: JUnit gate and completed check run
+        id: report
         if: ${{ !cancelled() }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -87,7 +89,7 @@ jobs:
             echo "Passed: ${{ steps.report.outputs.passed }}"
             echo "Failed: ${{ steps.report.outputs.failed }}"
             echo "Skipped: ${{ steps.report.outputs.skipped }}"
-            echo "Check: ${{ steps.report.outputs.url }}"
+            echo "Check: ${{ steps.report.outputs.url_html || 'Not published (see JUnit gate)' }}"
             echo "Raw JUnit report retained for 30 days as artifact junit-report-${{ matrix.architecture }}-${{ github.event.pull_request.head.sha || github.sha }}."
           } >> "$GITHUB_STEP_SUMMARY"
       - name: actionlint

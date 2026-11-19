@@ -4,8 +4,9 @@
 dorny/test-reporter's check mode creates a run with status in_progress and then
 updates it. That update returns HTTP 404 and leaves the run in_progress, which
 fails a job whose tests passed. This tool does not use that sequence. It creates
-the run already completed, in one request, and treats a create or update failure
-as a warning. A failed, empty, missing, or unreadable report still fails the process.
+the run already completed, in one request, and fails verification if publication
+cannot be completed. Failed, incomplete, empty, missing, or unreadable reports
+also fail the process.
 """
 
 import argparse
@@ -136,14 +137,44 @@ def case_name(case):
     return name or classname or "(unnamed)"
 
 
+def evidence_complete(root):
+    """Validate declared totals against cases, including nested suite totals."""
+    if root.tag not in {"testsuite", "testsuites"}:
+        return False
+    suites = list(root.iter("testsuite"))
+    if not suites:
+        return False
+    for node in [root, *suites]:
+        cases = list(node.iter("testcase"))
+        expected = {
+            "tests": len(cases),
+            "failures": sum(case.find("failure") is not None for case in cases),
+            "errors": sum(case.find("error") is not None for case in cases),
+            "skipped": sum(case.find("skipped") is not None for case in cases),
+        }
+        if node.tag == "testsuite" and "tests" not in node.attrib:
+            return False
+        for key, actual in expected.items():
+            if key in node.attrib:
+                try:
+                    if int(node.attrib[key]) != actual:
+                        return False
+                except ValueError:
+                    return False
+    return True
+
+
 def load_junit(pattern, root):
     paths = matching_reports(pattern, root)
-    report = {"cases": [], "missing": not paths, "malformed": False}
+    report = {"cases": [], "missing": not paths, "malformed": False, "incomplete": False}
     if not paths:
         return report
     for path in paths:
         try:
-            cases = ET.parse(path).findall(".//testcase")
+            document = ET.parse(path).getroot()
+            cases = list(document.iter("testcase"))
+            if not evidence_complete(document):
+                report["incomplete"] = True
         except (ET.ParseError, OSError):
             report["malformed"] = True
             report["cases"] = []
@@ -173,6 +204,7 @@ def report_ok(report):
     return (
         not report["missing"]
         and not report["malformed"]
+        and not report["incomplete"]
         and report["cases"]
         and tally["failed"] == 0
     )
@@ -295,7 +327,7 @@ def evaluate(pattern, *, root, name, head_sha, api, publish, completed_at):
                 )
             )
         else:
-            conclusion = "success" if tally["failed"] == 0 else "failure"
+            conclusion = "success" if report_ok(report) else "failure"
             title = (
                 f"{tally['passed']} passed, {tally['failed']} failed, {tally['skipped']} skipped"
             )
@@ -305,10 +337,19 @@ def evaluate(pattern, *, root, name, head_sha, api, publish, completed_at):
                 head_sha=head_sha,
                 conclusion=conclusion,
                 title=title,
-                summary=check_summary(report),
+                summary=check_summary(report) + gate_summary(report, tally),
                 completed_at=completed_at,
             )
     summary = gate_summary(report, tally)
+    if publish and (
+        check is None
+        or check.get("conclusion") != ("success" if report_ok(report) else "failure")
+        or not check.get("html_url")
+    ):
+        exit_code = 1
+        summary += "Check publication did not complete with a matching result and URL; job fails.\n"
+    elif not publish:
+        summary += "Check publication disabled explicitly; summary and artifact only.\n"
     return {
         "exit_code": exit_code,
         "warnings": warnings,
@@ -323,6 +364,8 @@ def evaluate(pattern, *, root, name, head_sha, api, publish, completed_at):
 def gate_summary(report, tally):
     if report["malformed"]:
         return "\nJUnit gate: the report could not be read, so the job fails.\n"
+    if report["incomplete"]:
+        return "\nJUnit gate: declared totals do not match complete test evidence; job fails.\n"
     if report["missing"] or not report["cases"]:
         return "\nJUnit gate: no test cases were found, so the job fails.\n"
     return (

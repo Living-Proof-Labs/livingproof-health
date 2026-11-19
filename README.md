@@ -73,6 +73,10 @@ task dev:build
 task dev:verify
 ```
 
+`task dev:verify` explicitly enables the online installed-host integration test
+inside Compose; it requires access to the checksum-pinned GitHub releases and
+package index. No host environment-variable forwarding is required.
+
 To open an interactive shell inside the development container:
 
 ```sh
@@ -104,7 +108,27 @@ LIVINGPROOF_WHEEL_DIR=/path/to/wheels task verify
 
 Continuous integration runs `LIVINGPROOF_NETWORK=1 task verify` on both
 `ubuntu-24.04` (`amd64`) and `ubuntu-24.04-arm` (`arm64`) and checks workflows
-with `actionlint`.
+with `actionlint`. These fallback jobs run Task directly; they do not build or
+exercise Docker. Docker verification is a separate contributor/reviewer check.
+
+Test reporting fails verification for missing, malformed, empty, or inconsistent
+JUnit evidence and for failed check publication. Each suite must declare its
+test count; declared test/failure/error/skip totals must match its cases. Fork
+PRs explicitly disable check publication where write permissions are unavailable;
+the job summary and retained JUnit artifact remain the evidence for those runs.
+
+### Deferred infrastructure adoption
+
+The development image has not been published. CI uses the Ubuntu fallback above,
+and the development container builds the local Dockerfile.
+[Issue #4](https://github.com/Living-Proof-Labs/livingproof-health/issues/4) tracks
+image publication and migration of CI/development containers to a shared
+multi-architecture digest.
+
+The generated manual and GitHub Pages adoption are not complete.
+[Issue #5](https://github.com/Living-Proof-Labs/livingproof-health/issues/5) tracks
+generation, scoped deployment authorization, and live verification before adding
+a README start-here link. Bootstrap #2 makes no settings or deployment changes.
 
 ## License
 

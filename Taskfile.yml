@@ -33,9 +33,9 @@ tasks:
       - docker compose build development
   dev:verify:
     platforms: [linux]
-    desc: Run setup and verification in the development container without nested Docker
+    desc: Run setup and all tests, including installed host CLI integration, in Docker
     cmds:
-      - docker compose run --rm --user "$(id -u):$(id -g)" development bash -c 'task setup && task verify'
+      - docker compose run --rm --user "$(id -u):$(id -g)" -e LIVINGPROOF_NETWORK=1 development bash -c 'task setup && task verify'
   dev:shell:
     platforms: [linux]
     desc: Open the development container and set up its environment
