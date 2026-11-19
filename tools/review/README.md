@@ -7,15 +7,19 @@ It is **not** byte-for-byte recovery of the private script and is **not independ
 verification**. An independent reviewer must inspect this code and actual artifacts
 before resolving the P2. The original finding is in comment 7017492431.
 
-The existing Verify workflow runs this path after the unchanged 229 tests in the
-same Docker image/container and 300-second timeout. Do not run the script on the
-host. It fails closed without Docker and readable cgroup v2 ceilings: memory at
-most 512 MiB, zero additional swap, CPU quota at most two CPUs and at most 128 PIDs.
+The Verify workflow prepares locked dependencies and checksum-verified integration
+wheels in a constrained Docker container. A second container reuses that cache
+and runs offline setup, the unchanged 229 tests and these probes with
+`--network=none` and a 300-second timeout (forced termination after five more
+seconds). Do not run these scripts on the host. Before setup or test collection,
+verification fails closed without Docker, loopback-only networking and readable
+cgroup v2 limits: exactly 512 MiB memory, zero additional swap, two CPUs and 128 PIDs.
 Each of 16 children checks containment before creating fixtures, applies 256 MiB
 address-space and 8 CPU-second limits, and has a 12-second parent timeout. Installed
 CLI subprocesses inherit these limits and have four-second individual timeouts.
 No CI credential is passed to Docker or to the sanitized child environment.
-No local adversarial run is needed or authorized by this recovery path.
+Local constrained verification must pass before pushing workflow changes; hosted
+CI is a subsequent check. Dependency preparation invokes no fixtures or probes.
 
 Each revision (candidate and old `6f6527aad72684fb68d9271bc58149d6617c7fba`)
 is exercised with known/unknown content sizes and truncated-prefix, empty,
@@ -41,11 +45,26 @@ Reproduce only in a Docker environment that enforces the stated ceilings, from a
 fresh checkout/evidence directory, with the existing development image:
 
 ```sh
-docker run --rm --memory=512m --memory-swap=512m --cpus=2 --pids-limit=128 \
-  --user "$(id -u):$(id -g)" -e LIVINGPROOF_NETWORK=1 -e HEALTH_BOUNDED_TESTS=1 \
-  -e REVIEW_HEAD="$(git rev-parse HEAD)" -v "$PWD:/workspace/health" health-test \
-  timeout 300 bash -o pipefail -c 'task setup && task verify && uv run --locked --no-sync python tools/review/zstd_probes.py 2>&1 | tee artifacts/review-zstd-command.log'
+mkdir -p /tmp/health-review-deps
+docker -H unix:///var/run/docker.sock run --rm \
+  --memory=512m --memory-swap=512m --cpus=2 --pids-limit=128 \
+  --user "$(id -u):$(id -g)" -v "$PWD:/workspace/health" \
+  -v /tmp/health-review-deps:/tmp health-test \
+  timeout --kill-after=5 300 bash tools/review/prepare.sh
+docker -H unix:///var/run/docker.sock run --rm --network=none \
+  --memory=512m --memory-swap=512m --cpus=2 --pids-limit=128 \
+  --user "$(id -u):$(id -g)" -e REVIEW_HEAD="$(git rev-parse HEAD)" \
+  -v "$PWD:/workspace/health" -v /tmp/health-review-deps:/tmp health-test \
+  timeout --kill-after=5 300 bash tools/review/verify.sh
 ```
+
+Use a fresh cache directory for preparation. In a managed environment, preserve
+the configured Docker proxy and existing CA trust. If required, supply the
+Dockerfile's `ca` BuildKit secret and mount the existing CA bundle read-only in
+the preparation container for curl, Git and uv. Use `BUILDX_CONFIG` for writable
+Buildx state without replacing `DOCKER_CONFIG`. Offline verification needs no
+CA mount or network credentials. Report publication runs separately in Docker;
+only that container receives the CI token, after tests have completed.
 
 Hosted artifacts `reconstructed-review-<architecture>-<head>` are separate from
 `junit-report-<architecture>-<head>`, both retained for 30 days. The workflow logs

@@ -25,18 +25,21 @@ OUT = ROOT / "artifacts/review-zstd"
 PROVENANCE = "Implementor reconstruction from reviewer specification recovered from recorded tool-call history (#13 comment 7021500386), not byte-for-byte original script recovery. Implementor execution is not independent verification."
 
 
-def containment():
+def containment(*, offline=True):
     assert Path("/.dockerenv").exists(), "Docker required"
     base = Path("/sys/fs/cgroup")
     values = {
         key: (base / key).read_text().strip()
         for key in ("memory.max", "memory.swap.max", "cpu.max", "pids.max")
     }
-    assert 0 < int(values["memory.max"]) <= 512 << 20
+    assert int(values["memory.max"]) == 512 << 20
     assert int(values["memory.swap.max"]) == 0
     quota, period = map(int, values["cpu.max"].split())
-    assert 0 < quota <= 2 * period
-    assert 0 < int(values["pids.max"]) <= 128
+    assert quota == 2 * period
+    assert int(values["pids.max"]) == 128
+    values["network_interfaces"] = sorted(p.name for p in Path("/sys/class/net").iterdir())
+    if offline:
+        assert values["network_interfaces"] == ["lo"], "Loopback-only network required"
     return values
 
 
