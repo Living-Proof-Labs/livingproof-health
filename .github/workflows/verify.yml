@@ -50,11 +50,23 @@ jobs:
       - name: Build local test image
         run: docker build --target development -t health-test .
       - name: Verify inside constrained Docker
+        env:
+          REVIEW_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           docker run --rm --memory=512m --memory-swap=512m --cpus=2 --pids-limit=128 \
-            --user "$(id -u):$(id -g)" -e LIVINGPROOF_NETWORK=1 -e HEALTH_BOUNDED_TESTS=1 \
+            --user "$(id -u):$(id -g)" -e LIVINGPROOF_NETWORK=1 -e HEALTH_BOUNDED_TESTS=1 -e REVIEW_HEAD \
             -v "$PWD:/workspace/health" health-test \
-            timeout 300 bash -c 'task setup && task verify'
+            timeout 300 bash -o pipefail -c 'task setup && task verify && uv run --locked --no-sync python tools/review/zstd_probes.py 2>&1 | tee artifacts/review-zstd-command.log'
+      - name: Retain reconstructed review probes
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: reconstructed-review-${{ matrix.architecture }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            artifacts/review-zstd/
+            artifacts/review-zstd-command.log
+          retention-days: 30
+          if-no-files-found: error
       - name: Publish test results
         if: ${{ !cancelled() }}
         continue-on-error: true
