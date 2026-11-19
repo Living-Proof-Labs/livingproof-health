@@ -2,6 +2,9 @@
 
 Robot wellness and time-indexed health observation plugin for Living Proof Labs.
 
+Try the [offline recorded-replay → scenario demonstration](examples/recorded-replay/README.md)
+for portable JSON, exact seeks and a comparison of recorded height results.
+
 ## Status
 
 The first slice provides time-only health snapshots, an optional recorded base-pose
