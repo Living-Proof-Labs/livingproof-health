@@ -127,7 +127,9 @@ with tempfile.TemporaryDirectory() as temp:
         output = Path(temp) / "out.json"
         output.write_text("existing-complete-result")
         limits = Path(temp) / "limits.json"
-        limits.write_text(json.dumps({"expanded_chunk_bytes": len(content)}))
+        limits.write_text(
+            json.dumps({"expanded_chunk_bytes": len(content)} if suffix == "valid" else {})
+        )
         for destination in ([], ["--output", str(output)]):
             result = CliRunner().invoke(
                 health, ["replay", str(path), "--limits", str(limits), *destination]
