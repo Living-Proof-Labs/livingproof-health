@@ -1,0 +1,60 @@
+{
+  "producer": {
+    "repository": "Living-Proof-Labs/livingproof-sim-mujoco",
+    "tag": "v3.2.1",
+    "commit": "f9c326f370cc3e54bf38932bfb332455dc4b5ef1",
+    "docker_image_id": "sha256:ef93be6981f33e2e925c3da9d4aa594fd77af498982ca3006f9097b31701ef23",
+    "dockerfile_sha256": "3db6706e4121f9c8e6fd359b34af175fbb1a1829841d83b2eed91424fc09b61b"
+  },
+  "robot": {
+    "repository": "Living-Proof-Labs/livingproof-unitree-g1",
+    "tag": "v2.2.1",
+    "commit": "68725986336c38d25a5ea421f895d9d796aed7f1",
+    "uv_lock_sha256": "e92f5b7b4031e946fb685741a5a5bde40f0735cf6689816062441137fab40b2e",
+    "pins_sha256": "fb449c8ccba0c178f59cfcc390a21b4d6aeaf6f51cc73f7ed9adc13e3bab2221"
+  },
+  "environment": {
+    "architecture": "linux/amd64",
+    "python": "3.11.14",
+    "mujoco": "3.17.0",
+    "numpy": "2.4.6",
+    "torch": "2.15.0+cpu",
+    "uv": "0.12.23"
+  },
+  "source_files": {
+    "src/livingproof_sim_mujoco/evidence.py": "498a8f1fbfb8265b894b01f5a6b062b0b9d910ff397b2a340f9259300b8fccad",
+    "src/livingproof_sim_mujoco/observations.py": "3b33bc910da5039f733a01a8ff65ef6a7a157d44fb1264176f246d2aa50b4504",
+    "src/livingproof_sim_mujoco/policy.py": "5e2a5fd49d8bee314b01e86eae20c43b6633d15ff64f842963b1b213d7a3bd59",
+    "src/livingproof_sim_mujoco/media.py": "78177580ec097daa9f31854a3e560d5b0fbad4f6e3fcc775f01eb03d3842e02b",
+    "src/lpl_g1/route.py": "4a91d88f82e6652f0ae496ef292518354f28a5e1762fbfabeae7d8fc18572f82",
+    "src/lpl_g1/adapter.py": "49bcc2c98a97f8a6138eb0c645dfa4c9bb94e0e61bd76969265ee9a9302214a7",
+    "uv.lock": "e92f5b7b4031e946fb685741a5a5bde40f0735cf6689816062441137fab40b2e"
+  },
+  "kind": "authentic-time-limit-diagnostic",
+  "configuration": {
+    "api": "evidence.run_trial",
+    "changed_input": "p.time_limit",
+    "old_duration_s": 27.0,
+    "new_duration_s": 0.1,
+    "other_inputs": "unchanged original corner setup",
+    "scenario_lock_modified": false
+  },
+  "generation": {
+    "fresh_containers": 2,
+    "hook_disabled_enabled_observation_bytes_equal": true,
+    "observation_cmp_exit": 0,
+    "sidecar_cmp_exit": 0,
+    "recording": "not generated or compared"
+  },
+  "files": {
+    "generation.log": "f0be52bbdc4442c88c918d14c690df79eb02d90d2880066e4ec0a87757fca9d6",
+    "repeat.log": "38f3f8e474de9501ab0567f54b51d4a7ef54a19fca2f971e40ea44f96c9f4e17",
+    "sidecar.json.gz": "a666dda8d1a542e4a918f3bc9dd1f11344ebdb5ed56efab1c523b677c68f54c5",
+    "observation.json": "b451850eca78bdfdae94fda407bb79159a8c15b28759c89b8c7251d27cc323d5"
+  },
+  "tools": {
+    "tools/time-limit/docker.sh": "f85d6ef77a5feb9abf0152027ba8c5fb4fba64b47938dee08dc7d3d13d54ab5f",
+    "tools/time-limit/collect.py": "faa1aac83745f841a6321933d7b799324083b64d5abd390c088d4bb79bd194ce",
+    "tools/time-limit/run.sh": "2d7dd126c30b15eddd5187ba1a3db7a7235ec56db4ff037635bb802c72e7de22"
+  }
+}

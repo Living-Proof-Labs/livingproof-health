@@ -13,6 +13,8 @@ pinned scenario evaluator with MCAP-to-Health, including expected disagreements.
 simulation recording, separately from the derived trace fixture.
 The [diagnostic sidecar](docs/diagnostic-sidecar.md) measures callback coverage
 and exposes a one-step position freshness gap without changing the producer.
+The [time-limit experiment](docs/time-limit-evidence.md) empirically confirms
+a final integration state with no callback.
 Existing validators remain in place: sampled pose does not establish whole-trial
 parity or hardware health.
 
