@@ -25,3 +25,18 @@ ENV UV_PROJECT_ENVIRONMENT=/tmp/health-venv UV_CACHE_DIR=/tmp/health-uv-cache HO
 WORKDIR /workspace/health
 USER vscode
 CMD ["sleep", "infinity"]
+
+# Health-owned offline development demonstration; never a production evaluator image.
+FROM development AS replay-example
+USER root
+COPY . /workspace/health
+ENV UV_PROJECT_ENVIRONMENT=/opt/replay-example PATH=/opt/replay-example/bin:$PATH
+RUN --mount=type=secret,id=ca,required=false \
+    if [ -f /run/secrets/ca ]; then export SSL_CERT_FILE=/run/secrets/ca GIT_SSL_CAINFO=/run/secrets/ca UV_SYSTEM_CERTS=true; fi; \
+    uv sync --locked --no-editable --no-python-downloads
+USER vscode
+ENTRYPOINT ["python", "/workspace/health/examples/recorded-replay/demo.py"]
+CMD ["--output", "/output/demo"]
+
+# Preserve the default development image for existing unqualified builds.
+FROM development AS default
