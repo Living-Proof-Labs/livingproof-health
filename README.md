@@ -42,15 +42,19 @@ The last command returns FAIL (exit 1): the minimum recorded base height is
 The same commands are available under `livingproof capability health` when the
 host is installed. This is a development fixture path; no image is released yet
 (see #4 below). The [fixture documentation](docs/health-snapshots.md) explains why
-these results cover recorded samples only. Invoking the group without a command
+these results cover recorded samples only. All defined JSON timestamps use decimal
+strings so ordinary JavaScript preserves epoch nanoseconds; see the
+[lossless wire contract](docs/health-snapshots.md#lossless-timestamps-across-python-and-javascript). Invoking the group without a command
 exits 1 and directs the user to help.
 
 ## Development setup and verification
 
-### Prepared environment (Python 3.12, uv, and Task 3.54.0)
+### Prepared environment (Python 3.12, uv, Task 3.54.0, and Node.js)
 
 Requires Python `>=3.11` (verified on Python `3.12.12` and `3.12.16`),
-[uv](https://docs.astral.sh/uv/), and [Task](https://taskfile.dev) `3.54.0`:
+[uv](https://docs.astral.sh/uv/), [Task](https://taskfile.dev) `3.54.0`, and Node.js
+22 or later for the JavaScript timestamp regression (Docker and CI pin `22.23.5`).
+Node is a development-only dependency; installed Health commands require no JavaScript runtime.
 
 ```sh
 task setup
@@ -67,7 +71,8 @@ task verify
 ### Docker and development container
 
 From a host with Docker and Docker Compose (builds the `development` target
-from `Dockerfile` with Python `3.12.12`, `uv` `0.12.23`, and Task `3.54.0`):
+from `Dockerfile` with Python `3.12.12`, `uv` `0.12.23`, Task `3.54.0`, and
+Node.js `22.23.5`):
 
 ```sh
 task dev:build

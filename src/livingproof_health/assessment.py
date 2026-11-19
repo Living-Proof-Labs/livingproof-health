@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 """Scenario expectations are separate from observation and replay."""
 
+import json
+
 from .recording import finite_number
-from .snapshots import Replay
+from .snapshots import Replay, timestamp_to_wire
 
 
 def assess_base_height(replay: Replay, *, minimum_m: float, frame_id: str):
@@ -48,3 +50,11 @@ def assess_base_height(replay: Replay, *, minimum_m: float, frame_id: str):
         "time_ns": lowest[1] if lowest else None,
         "whole_trial_parity": "not-established",
     }
+
+
+def assessment_to_json(result):
+    """Serialize assessment time using the same lossless convention as snapshots."""
+    wire = {**result}
+    if wire["time_ns"] is not None:
+        wire["time_ns"] = timestamp_to_wire(wire["time_ns"])
+    return json.dumps(wire, sort_keys=True, allow_nan=False)

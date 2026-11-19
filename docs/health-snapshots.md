@@ -2,18 +2,19 @@
 
 The first slice implements [issue #1](https://github.com/Living-Proof-Labs/livingproof-health/issues/1).
 Time is the only universal assumption. A valid observation can be just
-`{"time_ns": 0}`. An empty set of observations is valid; omitting time is not.
+`{"time_ns": "0"}` on the JSON wire. An empty set of observations is valid; omitting time is not.
 Identity, measurements, posture, and source metadata are optional.
 
 ## Contract and adapter boundary
 
 `livingproof_health.snapshots.snapshot` validates and copies a JSON object.
-`time_ns` is a nonnegative integer, in nanoseconds on the producer's clock. It is
-not implicitly Unix time. `items`, when present, is an object with adapter-owned
+`time_ns` is a nonnegative integer in the Python API and a canonical decimal
+string on the JSON wire, in nanoseconds on the producer's clock. It is not
+implicitly Unix time. `items`, when present, is an object with adapter-owned
 names and arbitrary JSON values. For example:
 
 ```json
-{"time_ns": 20000000, "items": {"robot-specific/gripper": {"load": 3, "unit": "N"}, "temperature": null}}
+{"time_ns": "20000000", "items": {"robot-specific/gripper": {"load": 3, "unit": "N"}, "temperature": null}}
 ```
 
 An absent item means not reported; `null` means explicitly unavailable. Neither
@@ -46,6 +47,54 @@ publish timestamp, sequence, adapter version, and clock choice. This links the
 output to the recording without embedding a local path. It does not authenticate
 input provenance or prove that the source is hardware. The fixture's provenance
 is documented separately below.
+
+### Lossless timestamps across Python and JavaScript
+
+All defined timestamps use the same **canonical nonnegative decimal string** on
+the wire: snapshot `time_ns`, optional `source.publish_time_ns`, and assessment
+`time_ns`. CLI `replay`, `seek`, and `assess` all follow this convention. An
+assessment without an observed minimum retains `time_ns: null`; this is absence,
+not a timestamp. The canonical syntax is `0` or an ASCII digit from `1` to `9`
+followed by zero or more ASCII digits. JSON numbers, signs, leading zeroes,
+whitespace, fractions, exponents, booleans, and non-ASCII digits are rejected.
+
+For example, `"1800000000000000001"` and `"1800000000000000003"` remain distinct
+through ordinary `JSON.parse` and `JSON.stringify`. Numeric JSON cannot guarantee
+this: both would round to the same JavaScript `Number`. Never convert these
+strings to `Number`, `parseInt`, or millisecond `Date` values for exact ordering.
+Use `BigInt` for comparison; leave the strings in the document when serializing
+because `JSON.stringify` does not accept `BigInt` values.
+
+Python `snapshot`, adapters, `Replay.seek`, and `assess_base_height` use integer
+nanoseconds internally. `Replay.to_json`, `snapshot_to_wire` (for an individual
+seek result), and `assessment_to_json` emit decimal strings. `Replay.from_json`
+validates wire strings and restores Python integers. Optional source timestamps
+are validated when supplied; robot observations and metadata remain optional.
+This convention covers the defined clock fields, not arbitrary adapter-owned
+measurements. Adapters defining additional exact times must encode them losslessly.
+
+This corrects the unreleased draft `/1` format. Numeric timestamps from earlier
+PR revisions are rejected; regenerate those outputs from the original recording.
+Already-rounded browser data cannot be repaired by converting it to a string.
+
+The browser-compatible [seek reference](seek.mjs) uses validated `BigInt`
+comparisons and lower-bound search over the sorted snapshots, preserving the
+first duplicate. It can be used directly as an ES module:
+
+```javascript
+import { seek } from "./seek.mjs";
+const recording = JSON.parse(text);
+const sample = seek(recording.snapshots, "1800000000000000003");
+const portableAgain = JSON.stringify(recording);
+```
+
+The regression in `tests/test_timestamp_wire.py` sends actual CLI replay, seek,
+and assessment output through Node's ordinary JSON parser and serializer, imports
+the result back into Python, and checks exact snapshot, publish, and assessment
+times. It executes this same seek reference for duplicates, before/at/between/
+after boundaries, empty input, and invalid query timestamps. Node is a development
+test engine only; the Python package and CLI do not require it. A graphical
+browser test is not claimed.
 
 Replay sorts by integer MCAP **log time** and keeps duplicate timestamps in file
 order. Embedded payload timestamps do not override the selected clock. Every
@@ -128,6 +177,7 @@ The existing CI publishes individual JUnit results and retains reports for 30 da
 | --- | --- |
 | Time-only, robot-specific items, unavailable values, invalid contract | `tests/test_snapshots.py` |
 | Stable replay, duplicate times, exact integer seek, portable round trip | `tests/test_snapshots.py` |
+| Lossless Python/JavaScript/Python epoch timestamps; BigInt seek and invalid wire input | `tests/test_timestamp_wire.py`, `tests/timestamp_roundtrip.mjs` |
 | Recorded position conversion, byte-identical fixture regeneration | `test_simulation_fixture_reproduces_and_preserves_every_position` |
 | Below/equal/above limit, missing evidence, single instant, brief dip | `test_hallway_threshold_and_whole_recording_cases` |
 | Scenario controls verdict, wrong frame does not pass | `test_scenario_controls_verdict_observation_has_no_verdict` |

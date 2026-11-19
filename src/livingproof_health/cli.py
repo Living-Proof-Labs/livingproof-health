@@ -60,7 +60,8 @@ def replay(recording, topic):
     """Convert MCAP to portable health JSON on stdout, preserving every pose sample.
 
     Example: livingproof-health replay trial.mcap > health.json
-    MCAP log_time is the clock. Input must use the simulation recorder's
+    MCAP log_time is the clock. JSON timestamps are decimal strings (not numbers).
+    Input must use the simulation recorder's
     JSON PoseInFrame schema; selecting it does not establish hardware provenance.
     Next: livingproof-health seek health.json --time-ns 20000000
     """
@@ -92,7 +93,11 @@ def seek(recording, time_ns):
     """
     import json
 
-    click.echo(json.dumps(read_replay(recording).seek(time_ns), sort_keys=True, allow_nan=False))
+    from .snapshots import snapshot_to_wire
+
+    found = read_replay(recording).seek(time_ns)
+    wire = snapshot_to_wire(found) if found is not None else None
+    click.echo(json.dumps(wire, sort_keys=True, allow_nan=False))
 
 
 @health.command()
@@ -111,14 +116,13 @@ def assess(recording, minimum_m, frame_id):
     2 INSUFFICIENT_EVIDENCE. Invalid input also exits nonzero. Results cover recorded samples only;
     full simulation-step / whole-trial parity is not established.
     """
-    import json
-    from .assessment import assess_base_height
+    from .assessment import assess_base_height, assessment_to_json
 
     try:
         result = assess_base_height(read_replay(recording), minimum_m=minimum_m, frame_id=frame_id)
     except ValueError as exc:
         raise click.BadParameter(str(exc)) from exc
-    click.echo(json.dumps(result, sort_keys=True, allow_nan=False))
+    click.echo(assessment_to_json(result))
     raise click.exceptions.Exit(
         {"PASS": 0, "FAIL": 1, "INSUFFICIENT_EVIDENCE": 2}[result["status"]]
     )
