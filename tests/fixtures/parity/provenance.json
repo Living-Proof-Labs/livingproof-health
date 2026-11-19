@@ -1,0 +1,53 @@
+{
+  "kind": "original-saved-simulation-observation-not-original-mcap",
+  "source_repository": "Living-Proof-Labs/livingproof-sim-mujoco",
+  "source_tag": "v3.6.5",
+  "source_commit": "24c7e9b217f8dec94d3dfa5942d7edab71f6a7c4",
+  "files": [
+    {
+      "local_path": "original-trial-01.json",
+      "upstream_path": "tests/fixtures/real-runs/g1-stock/trials/trial-01.json",
+      "sha256": "8337886b0509110df270dc34c6a78d6c3632dad46c05aac733f55a2e813f5424"
+    },
+    {
+      "local_path": "original-run-manifest.json",
+      "upstream_path": "tests/fixtures/real-runs/g1-stock/run-manifest.json",
+      "sha256": "9621ca0efebe648955f630c2db212c372d773e342e90c43cff1650d1ba714ba6"
+    }
+  ],
+  "recording_producer": {
+    "tag": "v3.2.1",
+    "commit": "f9c326f370cc3e54bf38932bfb332455dc4b5ef1"
+  },
+  "inspected_code": [
+    {
+      "repository": "Living-Proof-Labs/livingproof-sim-mujoco",
+      "tag": "v3.2.1",
+      "path": "src/livingproof_sim_mujoco/observations.py",
+      "sha256": "3b33bc910da5039f733a01a8ff65ef6a7a157d44fb1264176f246d2aa50b4504"
+    },
+    {
+      "repository": "Living-Proof-Labs/livingproof-sim-mujoco",
+      "tag": "v3.2.1",
+      "path": "src/livingproof_sim_mujoco/media.py",
+      "sha256": "78177580ec097daa9f31854a3e560d5b0fbad4f6e3fcc775f01eb03d3842e02b"
+    },
+    {
+      "repository": "Living-Proof-Labs/livingproof-evaluator-scenario",
+      "tag": "v1.3.8",
+      "path": "src/livingproof_evaluator_scenario/checks.py",
+      "sha256": "38c3659a22f4c46ffa47876a3d2a3f5c0f7a68e5e2dc3a06613d738f0690a39f"
+    }
+  ],
+  "evaluator": {
+    "repository": "Living-Proof-Labs/livingproof-evaluator-scenario",
+    "tag": "v1.3.8",
+    "commit": "c1531f52f2df030d2ea85b9ce91fb5c01983cef5"
+  },
+  "scenario_parameters": {
+    "repository": "Living-Proof-Labs/robot-capability-specs",
+    "tag": "v2.2.0",
+    "commit": "23bec516bda29be7b26555286cbf2e8217ac5c81"
+  },
+  "limits": "Original saved observation and run manifest, copied byte-for-byte. No original MCAP or full-physics-step stream is present in the inspected source tree. Synthetic tests are separate and are not robot trials."
+}
