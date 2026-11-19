@@ -59,6 +59,12 @@ MCAP, CLI, installed-wheel, and other regression tests still run unchanged.
 
 ## Original evidence inspected and the precise gap
 
+This section records the evidence available for the differential-harness slice.
+A subsequent [original recorder slice](original-recording.md) successfully
+regenerated the pinned G1 trial and preserved its genuine paired MCAP. The
+sampling/full-step limits below remain; the absence of original media is no
+longer the current fixture limitation.
+
 The [provenance manifest](../tests/fixtures/parity/provenance.json) records tags,
 resolved commits, source paths, and SHA-256 checksums. The original G1 stock
 `trial-01.json` and `run-manifest.json` are copied **byte-for-byte** from the

@@ -1,0 +1,90 @@
+{
+  "kind": "original-recorder-simulation-rerun",
+  "run_id": "walk-corner-unitree-g1-stock-20261119T122039Z",
+  "producer": {
+    "repository": "Living-Proof-Labs/livingproof-sim-mujoco",
+    "tag": "v3.2.1",
+    "commit": "f9c326f370cc3e54bf38932bfb332455dc4b5ef1",
+    "docker_image_id": "sha256:ef93be6981f33e2e925c3da9d4aa594fd77af498982ca3006f9097b31701ef23",
+    "dockerfile_sha256": "3db6706e4121f9c8e6fd359b34af175fbb1a1829841d83b2eed91424fc09b61b"
+  },
+  "robot": {
+    "repository": "Living-Proof-Labs/livingproof-unitree-g1",
+    "tag": "v2.2.1",
+    "commit": "68725986336c38d25a5ea421f895d9d796aed7f1",
+    "uv_lock_sha256": "e92f5b7b4031e946fb685741a5a5bde40f0735cf6689816062441137fab40b2e",
+    "pins_sha256": "fb449c8ccba0c178f59cfcc390a21b4d6aeaf6f51cc73f7ed9adc13e3bab2221"
+  },
+  "environment": {
+    "architecture": "linux/amd64",
+    "python": "3.11.14",
+    "mujoco": "3.17.0",
+    "numpy": "2.4.6",
+    "torch": "2.15.0+cpu",
+    "uv": "0.12.23"
+  },
+  "retrieval_attempt": {
+    "repository": "Living-Proof-Labs/livingproof-verification",
+    "run_id": 43918093466,
+    "artifact_id": 14254230275,
+    "artifact_name": "unitree-g1-stock-mujoco-corner-mcap-stock",
+    "outcome": "GitHub blob-storage download returned Forbidden; no bytes retrieved or pairing claimed."
+  },
+  "generation": {
+    "evidence_exit": 0,
+    "media_exit": 0,
+    "observation_matches_previous_fixture_sha256": "8337886b0509110df270dc34c6a78d6c3632dad46c05aac733f55a2e813f5424",
+    "pairing": "Unchanged media command re-ran the trial and verified its observation hash before retaining the MCAP. media/media.json links that hash to the original MCAP size and SHA-256.",
+    "video_selection": "Empty selection suppresses video only; all trials still recorded as MCAP.",
+    "source_changes": "None. No sampling, validator, configuration or threshold changes.",
+    "repeat": {
+      "media_exit": 0,
+      "cmp_exit": 0,
+      "result": "Second normal recorder invocation in a fresh container produced byte-identical MCAP and passed the observation hash check again."
+    }
+  },
+  "files": {
+    "corner.lock.json": {
+      "sha256": "e82709fe9ad020ce3de02bc1c9ea8d6464f9e2b5f6179d295bbf89fe34c50153",
+      "bytes": 665
+    },
+    "evidence/manifest.json": {
+      "sha256": "945ac1dbb1e68c1b66de118ae290ac7bf5b0899a2b91bd8bc41463d22608ea87",
+      "bytes": 15413
+    },
+    "evidence/run-manifest.json": {
+      "sha256": "9fb3dfedc35b1f29812a50d08c3a2e1233e39eb8bc01f7321f66820a9fade1d9",
+      "bytes": 1236
+    },
+    "evidence/trials/trial-01.json": {
+      "sha256": "8337886b0509110df270dc34c6a78d6c3632dad46c05aac733f55a2e813f5424",
+      "bytes": 27612
+    },
+    "generation.log": {
+      "sha256": "8852764396886199ec466e716b76f78ca1f242b7785602a5d95bd06277203a5f",
+      "bytes": 5010
+    },
+    "installed-packages.txt": {
+      "sha256": "9b96f3eb6032fa6d8264473a4445afb9f207b7167cdbf2ca4d563372a20ef9dc",
+      "bytes": 1046
+    },
+    "media/mcap/trial-01.mcap": {
+      "sha256": "0acbf1037b64f4b3aceaac6a1fcd83fd5b8599943a10c2815a8e09ac636bbef4",
+      "bytes": 214645
+    },
+    "media/media.json": {
+      "sha256": "7e38b7503cc52e354a386d3db668064985b2aafa8c70d610fcf2df3ea6b53ee0",
+      "bytes": 456
+    },
+    "media-selection.json": {
+      "sha256": "7f682e1e8390ee1737a7c4e3fa51d5c501d00118ce8c90feccbb1545e96e2076",
+      "bytes": 15
+    },
+    "repeat.log": {
+      "sha256": "06ddf1f2379cff4d9dd6139bfec19d8e01be06066fa616efbb6c78e2eb12e062",
+      "bytes": 4038
+    }
+  },
+  "license": "Apache-2.0; original simulation output from Apache-2.0 Living Proof Labs producer/robot package. No model, policy or third-party source files redistributed.",
+  "limits": "One original simulation recording with sampled/rounded pose; not hardware or full-physics-step/continuous-trial parity. New run identity; not a retrieved historic MCAP."
+}

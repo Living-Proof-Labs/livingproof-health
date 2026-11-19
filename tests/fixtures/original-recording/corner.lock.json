@@ -1,0 +1,29 @@
+{
+  "plan": {
+    "trials": 1
+  },
+  "scenario": "walk-corner@0.1.0",
+  "world": {
+    "id": "hallway-corner",
+    "version": "0.1.0",
+    "sha256": "8393881e8b38a090f51c3a424ca444623a901f642f75186cb4d41ac7482898f5"
+  },
+  "configurations": [
+    {
+      "name": "stock",
+      "path": "configurations/stock.json",
+      "version": "1.1.1",
+      "sha256": "8baf584eb025fa4408aad20a81521b73bc068a3a7e613dfeeb8f03d24eb02b5e"
+    }
+  ],
+  "releases": {
+    "runner": {
+      "tag": "v3.2.1",
+      "commit": "f9c326f370cc3e54bf38932bfb332455dc4b5ef1"
+    },
+    "specs": {
+      "tag": "v2.3.0",
+      "commit": "57317e617014a6df97bb7fba9d92a890af8d42e5"
+    }
+  }
+}

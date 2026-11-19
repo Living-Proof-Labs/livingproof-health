@@ -1,0 +1,16 @@
+{
+  "format": "livingproof-hallway-media/2.0.0",
+  "configuration": "stock",
+  "run_id": "walk-corner-unitree-g1-stock-20261119T122039Z",
+  "trials": [
+    {
+      "index": 1,
+      "observation_sha256": "8337886b0509110df270dc34c6a78d6c3632dad46c05aac733f55a2e813f5424",
+      "mcap": {
+        "path": "mcap/trial-01.mcap",
+        "bytes": 214645,
+        "sha256": "0acbf1037b64f4b3aceaac6a1fcd83fd5b8599943a10c2815a8e09ac636bbef4"
+      }
+    }
+  ]
+}
