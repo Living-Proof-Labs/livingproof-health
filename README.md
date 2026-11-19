@@ -11,6 +11,8 @@ The [differential evidence harness](docs/parity-evidence.md) compares the actual
 pinned scenario evaluator with MCAP-to-Health, including expected disagreements.
 [Original recorder evidence](docs/original-recording.md) adds a genuine paired G1
 simulation recording, separately from the derived trace fixture.
+The [diagnostic sidecar](docs/diagnostic-sidecar.md) measures callback coverage
+and exposes a one-step position freshness gap without changing the producer.
 Existing validators remain in place: sampled pose does not establish whole-trial
 parity or hardware health.
 
