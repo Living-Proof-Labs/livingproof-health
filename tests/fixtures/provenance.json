@@ -1,0 +1,16 @@
+{
+  "kind": "simulation-trace-reencoded-as-mcap",
+  "source_repository": "Living-Proof-Labs/livingproof-sim-mujoco",
+  "source_tag": "v3.6.5",
+  "source_commit": "24c7e9b217f8dec94d3dfa5942d7edab71f6a7c4",
+  "source_path": "tests/fixtures/real-runs/g1-stock/trials/trial-01.json",
+  "source_sha256": "8337886b0509110df270dc34c6a78d6c3632dad46c05aac733f55a2e813f5424",
+  "recorded_run": {
+    "runner": "livingproof-sim-mujoco v3.2.1",
+    "robot": "livingproof-unitree-g1 v2.2.1 (6872598)",
+    "scenario": "walk-corner 0.1.0",
+    "world": "hallway-corner 0.1.0"
+  },
+  "transformation": "Retain all saved t,x,y,z trace values; omit wall fields; convert seconds to integer nanoseconds; encode JSON PoseInFrame position on /base_pose. No orientation fabricated. This is not an original recorder MCAP or new simulation run.",
+  "limits": "Saved 50 Hz positions, not full simulation steps. No hardware health evidence or whole-trial parity claim."
+}

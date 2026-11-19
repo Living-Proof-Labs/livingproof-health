@@ -16,6 +16,7 @@ license = "Apache-2.0"
 dependencies = [
     "livingproof-common==1.0.0",
     "click==8.5.0",
+    "mcap==1.3.0",
 ]
 
 [project.scripts]

@@ -3,9 +3,12 @@ ARG PYTHON_IMAGE=python:3.12.12-slim-bookworm
 FROM ${PYTHON_IMAGE} AS python-base
 
 FROM ghcr.io/astral-sh/uv:0.12.23 AS uv-tools
+FROM node:22.23.5-bookworm-slim AS javascript-tools
 
 FROM python-base AS development
 COPY --from=uv-tools /uv /uvx /usr/local/bin/
+# Development-only engine for the ordinary JavaScript JSON/BigInt regression.
+COPY --from=javascript-tools /usr/local/bin/node /usr/local/bin/node
 ARG TASK_VERSION=3.54.0
 RUN apt-get update && apt-get install -y --no-install-recommends bash ca-certificates curl git && rm -rf /var/lib/apt/lists/*
 RUN --mount=type=secret,id=ca,required=false set -eu; \

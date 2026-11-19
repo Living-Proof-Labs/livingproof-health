@@ -6,6 +6,7 @@ to downloading pinned releases with LIVINGPROOF_NETWORK=1 (run explicitly in CI)
 """
 
 import hashlib
+import json
 import os
 from pathlib import Path
 import shutil
@@ -133,13 +134,35 @@ def test_installed_wheel_discovered_and_run_by_host_cli(tmp_path):
     assert "livingproof-health, version " in host_version.stdout
     assert "identity source: recorded-build" in host_version.stdout
 
-    # Invoking without a subcommand gives a clear, nonzero not-implemented response.
+    # Invoking without a subcommand gives a clear, nonzero command-selection response.
     host_unimpl = run(host_bin, "capability", "health", expected_exit=1)
-    assert "not implemented" in host_unimpl.stderr.lower()
+    assert "Choose a command" in host_unimpl.stderr
     assert "livingproof capability health --help" in host_unimpl.stderr
     assert "Traceback" not in host_unimpl.stderr
 
     standalone_unimpl = run(standalone_bin, expected_exit=1)
-    assert "not implemented" in standalone_unimpl.stderr.lower()
+    assert "Choose a command" in standalone_unimpl.stderr
     assert "livingproof-health --help" in standalone_unimpl.stderr
     assert "Traceback" not in standalone_unimpl.stderr
+
+    # Exercise conversion and scenario evaluation through the installed host plugin.
+    converted = run(
+        host_bin, "capability", "health", "replay", ROOT / "tests/fixtures/simulation-pose.mcap"
+    )
+    portable = tmp_path / "health.json"
+    portable.write_text(converted.stdout)
+    sought = run(standalone_bin, "seek", portable, "--time-ns", "4440000000")
+    assert json.loads(sought.stdout)["items"]["base_pose"]["position"]["z"] == 0.7464
+    verdict = run(
+        host_bin,
+        "capability",
+        "health",
+        "assess",
+        portable,
+        "--minimum-m",
+        "0.75",
+        "--frame-id",
+        "world",
+        expected_exit=1,
+    )
+    assert json.loads(verdict.stdout)["status"] == "FAIL"
