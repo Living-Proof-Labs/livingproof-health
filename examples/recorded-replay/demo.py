@@ -180,12 +180,12 @@ Provenance: {report["input"]["provenance"]}
 Expectation: base height >= **{minimum} m**, frame **{frame}**. Equality passes.
 
 {len(times)} snapshots; interval {report["interval"]["start_ns"]}–{report["interval"]["end_ns"]} ns;
-observed spacing {report["interval"]["sample_intervals_ns"]} ns.
+observed spacing {", ".join(report["interval"]["sample_intervals_ns"]) or "unavailable"} ns.
 
 | Path | Result | Observed minimum and time |
 | --- | --- | --- |
 | Installed Health host plugin | {health["status"]} | {health["minimum_m"]} m at {health["time_ns"]} ns |
-| Actual scenario evaluator, replay-derived summary | {derived["status"]} | {bridge.get("min_base_height")} |
+| Actual scenario evaluator, replay-derived summary | {derived["status"]} | {describe_summary(bridge.get("min_base_height"))} |
 | Actual scenario evaluator, original saved summary | {original_status} | {describe_summary(original_min)} |
 
 The original summary is retained separately, never substituted for the replay-derived summary.
