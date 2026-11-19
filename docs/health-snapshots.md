@@ -171,6 +171,10 @@ Setting `--minimum-m 0.7464` returns PASS for the recorded samples (exit 0).
 Insufficient evidence and invalid arguments return nonzero; assessment's
 INSUFFICIENT_EVIDENCE is exit 2. Command help is generated directly by Click.
 
+For a genuine recording made by the unchanged producer, see the separate
+[original recorder evidence](original-recording.md). It has an observation-hash
+link and retains five-decimal pose precision; it is not this re-encoded fixture.
+
 ## Executable scenario inventory
 
 Run `task verify`, or `task dev:verify` for Docker with the installed host check.
@@ -187,5 +191,6 @@ The existing CI publishes individual JUnit results and retains reports for 30 da
 | Unsupported/malformed MCAP fails; command-line replay/seek/assessment | `tests/test_posture.py` |
 | Fresh wheel installed beside pinned host; conversion and assessment | `tests/test_host_integration.py` (online or cached wheels required) |
 
-No real hardware, original recorder MCAP, live source, full-step parity,
+The separate original-recorder tests cover one real simulation recording.
+No real hardware, live source, full-step parity,
 cross-robot clock alignment, or viewer coverage is claimed by these scenarios.
