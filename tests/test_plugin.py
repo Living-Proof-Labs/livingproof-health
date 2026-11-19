@@ -49,12 +49,11 @@ def test_help_is_useful():
     assert "ROS" in result.output and "Foxglove" in result.output
 
 
-def test_not_implemented_response_is_clear():
+def test_no_command_response_is_clear():
     result = CliRunner().invoke(health, [], prog_name="livingproof capability health")
     assert result.exit_code == 1
     assert result.exception is not None
-    assert "not implemented" in result.output.lower()
-    assert "issue #1" in result.output
+    assert "Choose a command" in result.output
     assert "livingproof capability health --help" in result.output
     assert "Traceback" not in result.output
 

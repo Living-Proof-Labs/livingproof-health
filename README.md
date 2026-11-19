@@ -4,13 +4,11 @@ Robot wellness and time-indexed health observation plugin for Living Proof Labs.
 
 ## Status
 
-This repository is currently in its **bootstrap foundation** stage (issue `#2`).
-It provides the Python package scaffold, pinned dependencies, Docker/Task
-development workflow, continuous integration checks, and the discoverable
-`health` plugin entry point for the `livingproof` host command-line tool.
-
-Health snapshots, recording replay, and posture evaluation are not implemented
-yet and are tracked in [issue #1](https://github.com/Living-Proof-Labs/livingproof-health/issues/1).
+The first slice provides time-only health snapshots, an optional recorded base-pose
+adapter, deterministic MCAP-to-JSON replay and seek, and explicit scenario height
+expectations. See [the contract, fixture provenance, and parity limits](docs/health-snapshots.md).
+Existing validators remain in place: sampled pose does not establish whole-trial
+parity or hardware health.
 
 ## Design boundaries
 
@@ -30,19 +28,22 @@ yet and are tracked in [issue #1](https://github.com/Living-Proof-Labs/livingpro
 - Host plugin under `livingproof.capability.commands`: `health`, invoked as
   `livingproof capability health`
 
-Available bootstrap commands:
+From the prepared development environment (`task setup` first):
 
 ```sh
-livingproof capability --help
-livingproof capability health --help
-livingproof capability health --version
-livingproof-health --help
-livingproof-health --version
+uv run --locked --no-sync livingproof-health --help
+uv run --locked --no-sync livingproof-health replay tests/fixtures/simulation-pose.mcap > health.json
+uv run --locked --no-sync livingproof-health seek health.json --time-ns 4440000000
+uv run --locked --no-sync livingproof-health assess health.json --minimum-m 0.75 --frame-id world
 ```
 
-Invoking `livingproof capability health` or `livingproof-health` without a
-subcommand exits with status `1` and explains that Health functionality is not
-implemented yet while pointing to `--help`, `--version`, and issue `#1`.
+The last command returns FAIL (exit 1): the minimum recorded base height is
+`0.7464 m`. Equality passes when the configured minimum is `0.7464`.
+The same commands are available under `livingproof capability health` when the
+host is installed. This is a development fixture path; no image is released yet
+(see #4 below). The [fixture documentation](docs/health-snapshots.md) explains why
+these results cover recorded samples only. Invoking the group without a command
+exits 1 and directs the user to help.
 
 ## Development setup and verification
 
@@ -92,7 +93,7 @@ run `task setup` and `task verify` directly without nested Docker.
 it alongside the pinned `livingproof` (`v1.5.4`) and `livingproof-common`
 (`v1.0.0`) wheels into a clean virtual environment, checks dependency
 consistency with `uv pip check`, and exercises lightweight discovery, `--help`,
-`--version`, bash completion, and the unimplemented response.
+`--version`, bash completion, the no-command response, and replay/seek/assessment through the installed package.
 
 Run it online against the checksum-pinned GitHub releases:
 
