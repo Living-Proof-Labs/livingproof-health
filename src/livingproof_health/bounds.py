@@ -244,11 +244,17 @@ def expand(chunk, meter):
             with decoder.stream_reader(io.BytesIO(chunk.data), read_across_frames=True) as stream:
                 while block := stream.read(min(BLOCK, room + 1 - len(data))):
                     append(block)
-            # Stream readers can stop on truncated input without proving frame EOF.
-            # A second, bounded single-frame decode checks completion/trailing bytes.
-            verified = decoder.decompress(
-                chunk.data, max_output_size=max(1, room), allow_extra_data=False
-            )
+            # Only after the capped pass proves an upper bound on these immutable
+            # bytes' output, use the single-frame object to prove EOF/consumption.
+            # Its decompress() has no output cap, so it must never run first.
+            # One-shot allow_extra_data=False misses unknown-size trailing frames
+            # in the pinned backend; output equality alone cannot detect them.
+            verifier = decoder.decompressobj(read_across_frames=False)
+            verified = verifier.decompress(chunk.data)
+            if not verifier.eof:
+                raise ValueError("Truncated zstd chunk")
+            if verifier.unused_data or verifier.unconsumed_tail:
+                raise ValueError("Trailing data after zstd frame")
             if verified != data:
                 raise ValueError("Inconsistent zstd expansion")
         except zstandard.ZstdError as exc:

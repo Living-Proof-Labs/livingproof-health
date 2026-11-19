@@ -15,6 +15,11 @@ from livingproof_health.bounds import Limits
 ROOT = Path(__file__).resolve().parents[1]
 CASES = [
     "genuine_compatibility",
+    *[
+        f"frame_{size}_{suffix}"
+        for size in ("known", "unknown")
+        for suffix in ("prefix", "empty", "skippable", "valid")
+    ],
     "declared_record",
     "declared_compressed",
     "late_crc_no_stdout",

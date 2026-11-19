@@ -77,9 +77,14 @@ uses a synthetic footer only to terminate the upstream iterator; it is not evide
 and is neither emitted nor counted. Nested chunks/other MCAP structural records
 inside chunks are invalid; unknown extension records still consume budgets.
 
-For zstd, a second **bounded** single-frame decode verifies completion/trailing data:
-stream-reader EOF alone can accept truncated input. This uses at most the already
-capped output room and rejects extra frames/data. The locked backend passes
+For zstd, the capped streaming pass first establishes actual output bounds on the
+immutable compressed bytes. Only then does a second single-frame decompression
+object check `eof`, `unused_data` and `unconsumed_tail`, rejecting truncation and
+all trailing bytes (including empty/skippable frames). Its output allocation is
+bounded by the already-verified first pass; this object has no per-call output cap
+and must never run first. Stream-reader EOF alone accepts some truncated input,
+and the pinned one-shot `allow_extra_data=False` path does not reject every
+unknown-size frame suffix. Equal output cannot establish compressed consumption. The locked backend passes
 `max_window_size` directly to `ZSTD_DCtx_setMaxWindowSize` in bytes; we also inspect
 frame `window_size` before decoder creation rather than relying on an ambiguous
 unit description. lz4 verifies end-of-frame and rejects unused/truncated data;

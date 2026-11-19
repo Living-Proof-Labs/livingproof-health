@@ -109,6 +109,39 @@ with tempfile.TemporaryDirectory() as temp:
         )
         result = CliRunner().invoke(health, ["replay", str(original)])
         assert result.exit_code == 0 and result.output == text, result.output
+    elif name.startswith("frame_"):
+        _, size, suffix = name.split("_")
+        content = raw(count=1)
+        encoded = zstandard.ZstdCompressor(write_content_size=size == "known").compress(content)
+        trailing = {
+            "prefix": zstandard.ZstdCompressor().compress(b"second frame")[:5],
+            "empty": zstandard.ZstdCompressor().compress(b""),
+            "skippable": struct.pack("<II", 0x184D2A50, 0),
+            "valid": b"",
+        }[suffix]
+        chunk = Chunk("zstd", encoded + trailing, 1, 0, zlib.crc32(content), len(content))
+        assert chunk.uncompressed_crc != 0
+        path.write_bytes(
+            MAGIC + packed(Header("", "test"), chunk, DataEnd(0), Footer(0, 0, 0)) + MAGIC
+        )
+        output = Path(temp) / "out.json"
+        output.write_text("existing-complete-result")
+        limits = Path(temp) / "limits.json"
+        limits.write_text(json.dumps({"expanded_chunk_bytes": len(content)}))
+        for destination in ([], ["--output", str(output)]):
+            result = CliRunner().invoke(
+                health, ["replay", str(path), "--limits", str(limits), *destination]
+            )
+            if suffix == "valid":
+                assert result.exit_code == 0, result.output
+                replay = read_mcap(path, limits=Limits(expanded_chunk_bytes=len(content)))
+                assert len(list(replay)) == 1
+                assert (output.read_text() if destination else result.stdout) == replay.to_json()
+            else:
+                assert result.exit_code != 0, result.output
+                assert "zstd" in result.stderr and result.stdout == ""
+                assert output.read_text() == "existing-complete-result"
+            assert not list(Path(temp).glob(".health-*"))
     elif name.startswith(("zstd_", "lz4_")):
         codec, case = name.split("_", 1)
         content = raw(padding=4096, topic="/ignored" if "unselected" in case else "/base_pose")
