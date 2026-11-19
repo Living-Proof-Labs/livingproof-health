@@ -1,0 +1,53 @@
+{
+  "producer": {
+    "repository": "Living-Proof-Labs/livingproof-sim-mujoco",
+    "tag": "v3.2.1",
+    "commit": "f9c326f370cc3e54bf38932bfb332455dc4b5ef1",
+    "docker_image_id": "sha256:ef93be6981f33e2e925c3da9d4aa594fd77af498982ca3006f9097b31701ef23",
+    "dockerfile_sha256": "3db6706e4121f9c8e6fd359b34af175fbb1a1829841d83b2eed91424fc09b61b"
+  },
+  "robot": {
+    "repository": "Living-Proof-Labs/livingproof-unitree-g1",
+    "tag": "v2.2.1",
+    "commit": "68725986336c38d25a5ea421f895d9d796aed7f1",
+    "uv_lock_sha256": "e92f5b7b4031e946fb685741a5a5bde40f0735cf6689816062441137fab40b2e",
+    "pins_sha256": "fb449c8ccba0c178f59cfcc390a21b4d6aeaf6f51cc73f7ed9adc13e3bab2221"
+  },
+  "environment": {
+    "architecture": "linux/amd64",
+    "python": "3.11.14",
+    "mujoco": "3.17.0",
+    "numpy": "2.4.6",
+    "torch": "2.15.0+cpu",
+    "uv": "0.12.23"
+  },
+  "run_id": "walk-corner-unitree-g1-stock-20261119T122039Z",
+  "kind": "diagnostic-simulation-hook-sidecar",
+  "generation": {
+    "fresh_containers": 2,
+    "hook_disabled_enabled_observation_bytes_equal": true,
+    "normal_recorder_pairing_exit": 0,
+    "mcap_cmp_exit": 0,
+    "sidecar_cmp_exit": 0
+  },
+  "files": {
+    "generation.log": "9b006d834f0e911cada5276fdf7d07f39b4f20928a0ae27f4154af02cd2fcc1e",
+    "repeat.log": "4786831a4fba08bb3298142f3dde70c24ed8321e9b6fefec22d3cd3c98ee687c",
+    "sidecar.json.gz": "ab1940d09941162468fa5025de7da6ab54f1468826046d4e6f918ba9ec935508"
+  },
+  "tools": {
+    "tools/diagnostic-sidecar/docker.sh": "21727e058ef28fdda85d5298438dea3108760c50849b26f8d4750604c974d5e4",
+    "tools/diagnostic-sidecar/collect.py": "594a097dc70fc33038334889baa932ce3ee65fe88d6f839e32760b0cd9f98b6a",
+    "tools/diagnostic-sidecar/coverage.py": "36c9a59639e014807f193b08479aee71e0ba1b07acd2ce7548e2965a95bbb37e",
+    "tools/diagnostic-sidecar/run.sh": "3552464a875355f83186e010a492efd15828529479d50f1c0f94d13ce77fa7bf"
+  },
+  "source_files": {
+    "src/livingproof_sim_mujoco/evidence.py": "498a8f1fbfb8265b894b01f5a6b062b0b9d910ff397b2a340f9259300b8fccad",
+    "src/livingproof_sim_mujoco/observations.py": "3b33bc910da5039f733a01a8ff65ef6a7a157d44fb1264176f246d2aa50b4504",
+    "src/livingproof_sim_mujoco/policy.py": "5e2a5fd49d8bee314b01e86eae20c43b6633d15ff64f842963b1b213d7a3bd59",
+    "src/livingproof_sim_mujoco/media.py": "78177580ec097daa9f31854a3e560d5b0fbad4f6e3fcc775f01eb03d3842e02b",
+    "src/lpl_g1/route.py": "4a91d88f82e6652f0ae496ef292518354f28a5e1762fbfabeae7d8fc18572f82",
+    "src/lpl_g1/adapter.py": "49bcc2c98a97f8a6138eb0c645dfa4c9bb94e0e61bd76969265ee9a9302214a7",
+    "uv.lock": "e92f5b7b4031e946fb685741a5a5bde40f0735cf6689816062441137fab40b2e"
+  }
+}
