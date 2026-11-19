@@ -7,6 +7,8 @@ Robot wellness and time-indexed health observation plugin for Living Proof Labs.
 The first slice provides time-only health snapshots, an optional recorded base-pose
 adapter, deterministic MCAP-to-JSON replay and seek, and explicit scenario height
 expectations. See [the contract, fixture provenance, and parity limits](docs/health-snapshots.md).
+The [differential evidence harness](docs/parity-evidence.md) compares the actual
+pinned scenario evaluator with MCAP-to-Health, including expected disagreements.
 Existing validators remain in place: sampled pose does not establish whole-trial
 parity or hardware health.
 
@@ -51,7 +53,9 @@ exits 1 and directs the user to help.
 
 ### Prepared environment (Python 3.12, uv, Task 3.54.0, and Node.js)
 
-Requires Python `>=3.11` (verified on Python `3.12.12` and `3.12.16`),
+The installed package requires Python `>=3.11`. Development/tests require Python
+`>=3.12` because the test-only scenario evaluator requires it (Docker uses `3.12.12`).
+The prepared environment also needs
 [uv](https://docs.astral.sh/uv/), [Task](https://taskfile.dev) `3.54.0`, and Node.js
 22 or later for the JavaScript timestamp regression (Docker and CI pin `22.23.5`).
 Node is a development-only dependency; installed Health commands require no JavaScript runtime.

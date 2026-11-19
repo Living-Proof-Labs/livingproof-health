@@ -129,8 +129,11 @@ The comparison matches the strict `<` behavior in
 (resolved `c1531f52f2df030d2ea85b9ce91fb5c01983cef5`). The
 [MuJoCo recorder v3.6.5](https://github.com/Living-Proof-Labs/livingproof-sim-mujoco/blob/v3.6.5/src/livingproof_sim_mujoco/media.py)
 records pose at 50 Hz and rounds position to five decimals. The evaluator's
-existing minimum comes from simulation observation evidence, not necessarily
-those same samples. A dip between recorder samples or rounding at a threshold
+existing minimum comes from a saved simulation observation. Inspection of the
+fixture producer confirms this minimum is itself sampled (50 Hz by default),
+with four-decimal positions/minima, while MCAP uses five decimals. Neither is
+a full-physics-step stream. See the [differential evidence and precise producer
+gap](parity-evidence.md). A dip between recorder samples or rounding at a threshold
 can differ. Therefore **existing validators remain in place**. This PR does not
 establish end-to-end parity or change an evaluator dependency.
 
