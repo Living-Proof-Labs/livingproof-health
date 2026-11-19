@@ -274,6 +274,13 @@ print(
             "container_memory_bytes": container_memory,
             "outcome": "PASS",
             "peak_rss_kib": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
+            "worker_vm_hwm_kib": int(
+                next(
+                    line.split()[1]
+                    for line in Path("/proc/self/status").read_text().splitlines()
+                    if line.startswith("VmHWM:")
+                )
+            ),
             "elapsed_s": time.monotonic() - started,
             "address_space_limit_bytes": 256 << 20,
             "cpu_limit_s": 8,

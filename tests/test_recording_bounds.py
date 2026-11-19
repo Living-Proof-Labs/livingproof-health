@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 
 import pytest
 
@@ -54,6 +55,7 @@ def test_bounded_recording_in_container(case):
     assert Path("/.dockerenv").exists() and os.environ.get("HEALTH_BOUNDED_TESTS") == "1", (
         "Run task dev:verify: these cases require constrained Docker, not host execution"
     )
+    started = time.monotonic()
     result = subprocess.run(
         [sys.executable, str(ROOT / "tools/bounds/case.py"), case],
         capture_output=True,
@@ -62,6 +64,7 @@ def test_bounded_recording_in_container(case):
     )
     assert result.returncode == 0, result.stdout + "\n" + result.stderr
     measured = json.loads(result.stdout)
+    measured["subprocess_wall_s"] = time.monotonic() - started
     assert measured["outcome"] == "PASS"
     target = ROOT / "artifacts/bounds"
     target.mkdir(parents=True, exist_ok=True)

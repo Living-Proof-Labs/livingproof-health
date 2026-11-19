@@ -149,7 +149,10 @@ CI build/use the development Docker image with **512 MiB memory and swap ceiling
 2 CPUs, 128 PIDs, and 300-second suite timeout**. Each small adversarial case runs
 in a separate child with **256 MiB address space, 8 CPU seconds and 12 wall seconds**.
 The child checks Docker and its actual cgroup ceiling before generating fixtures.
-The worker records Linux peak RSS and elapsed time under `artifacts/bounds/*.json`;
+The worker records Linux `getrusage` peak RSS, current-program `/proc` `VmHWM`,
+and case elapsed time under `artifacts/bounds/*.json`; the parent adds full child
+wall time including startup. Peaks are observed high-water marks, not allocation
+deltas, and the process-launch high-water mark can dominate `getrusage`.
 hosted JUnit artifacts retain these alongside individual test results.
 
 Cases use only small inputs: zstd/lz4 actual expansion, false declarations,
