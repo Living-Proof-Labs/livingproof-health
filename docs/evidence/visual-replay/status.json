@@ -1,0 +1,13 @@
+{
+  "status": "BLOCKED",
+  "action": "Open generated genuine/viewer.html via file:// in offline Chromium",
+  "error": "Page.goto: net::ERR_BLOCKED_BY_ADMINISTRATOR",
+  "environment": "ccarenv_b64_Y2NhcmVudl8wMDBkZjYyNzZiYzA4MTkxYTJhOTk3OWRlNWQyN2EwNQ",
+  "playwright_version": "1.62.0",
+  "browser_executable": "/usr/bin/chromium",
+  "browser_context_offline": true,
+  "rendered_states_verified": [],
+  "screenshots": [],
+  "pending": ["actual local-page JavaScript execution", "forward/backward scrubbing", "duplicate/epoch/gap/boundary interactions", "rendered injection check", "desktop and narrow-screen screenshots", "keyboard usability"],
+  "next_step": "Run the retained browser checker in an authorized environment that permits local file opening, without changing managed browser policy or serving the artifact."
+}
