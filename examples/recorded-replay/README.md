@@ -30,7 +30,7 @@ docker run --rm --network none --user "$(id -u):$(id -g)" \
 
 Open `artifacts/replay-example/demo/comparison.md`. The adjacent files are:
 
-- `viewer.html`: self-contained visual replay (browser acceptance currently blocked; see below).
+- `viewer.html`: self-contained visual replay (see below).
 - `replay.json`: portable Health snapshots; nanosecond timestamps are strings.
 - `comparison.json`: input SHA-256, paired observation hash/run identity,
   expectation, frame, interval, measured sampling, each separate result and limits.
@@ -130,13 +130,21 @@ coverage. The image build excludes `.git`, so its Health version may use the
 source-archive fallback; independent-review evidence identifies the exact commit
 and resulting image digest. The development image is built locally, not published.
 
-## Portable visual replay (draft; browser evidence blocked)
+## Portable visual replay
 
-The same offline Docker example now also emits **`viewer.html`**. Copy that one
-file anywhere and open it directly in a local browser (for example, File → Open,
-then select `artifacts/replay-example/demo/viewer.html`). It embeds the replay,
-comparison, styles and JavaScript; no CDN, server or network request is needed.
-No Pages/manual or image-publication adoption is implied.
+The offline Docker example emits **`viewer.html`**. This single file embeds the replay,
+comparison, styles and JavaScript. It needs no ROS server, live topic stream,
+external assets or paid viewer.
+
+Serve the output directory on loopback, then open the viewer in your browser:
+
+```sh
+python3 -m http.server 8000 --bind 127.0.0.1 \
+  --directory artifacts/replay-example/demo
+```
+
+Open <http://127.0.0.1:8000/viewer.html>. If your browser also permits opening
+local files directly, File → Open is optional; it is not required.
 
 Presentation semantics are deliberately separate from `Replay.seek`:
 
@@ -165,33 +173,16 @@ The artifact also declares a no-network content policy. Genuine fixture provenan
 and recorded-sample limitations remain visible; synthetic browser fixtures are
 explicitly labeled synthetic, not robot evidence.
 
-### Verification and the current evidence gap
+### Verify the viewer
 
-Ordinary `task verify` exercises the actual presentation lookup in Node.js,
-including adjacent epoch nanoseconds, duplicate ties, backward lookups, gaps and
-boundaries. It checks safe HTML embedding and generation through the real example, plus
-actual generated control-script behavior against a minimal DOM model (not a browser).
-These tests **do not establish rendering, keyboard behavior or screenshot quality**.
+For a manual smoke test with the retained G1 recording, confirm there are
+614 snapshots over 0–12.26 seconds. Seek to 4440000000 nanoseconds: the displayed
+height should be 0.74637 m in frame `world`. Check keyboard stepping and the
+layout on a narrow screen. The viewer itself should initiate no external requests.
 
-The retained browser checker generates genuine, synthetic and empty viewers, opens
-`file://` pages in an offline Chromium context, asserts interaction and injection
-behavior, and captures desktop/390-pixel screenshots. Run on an environment whose
-browser permits opening local files:
-
-```sh
-# One-time verification-only setup (outside Health runtime dependencies):
-python -m venv /tmp/health-browser-check
-/tmp/health-browser-check/bin/pip install -r tools/visual-replay/requirements.txt
-# Health's locked development environment must already be prepared via task setup.
-/tmp/health-browser-check/bin/python tools/visual-replay/check_browser.py \
-  --python "$PWD/.venv/bin/python" --browser /usr/bin/chromium \
-  --output artifacts/visual-replay-browser-new
-```
-
-The implementation executor has Chromium and Playwright, but its first local-page
-navigation failed with **`net::ERR_BLOCKED_BY_ADMINISTRATOR`**. No browser policy
-was changed, no server was substituted, and no screenshot or visual verification
-is claimed. [Retained attempt and status](../../docs/evidence/visual-replay) identify
-what remains unverified. The viewer must stay draft pending an authorized local
-browser run, actual screenshot inspection, and independent review. Issue #1 stays
-open; core contracts, validators and producers are unchanged.
+Ordinary `task verify` checks exact lookup and safe embedding but does not
+establish actual browser rendering. The retained optional Playwright checker
+uses `file://`; use it only where the browser permits local files. Independent
+browser evidence for the local HTTP path is recorded on the pull request.
+Issue #1 stays open for whole-trial parity. The viewer does not replace
+validators or change the producer.
