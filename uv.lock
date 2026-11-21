@@ -75,7 +75,9 @@ source = { editable = "." }
 dependencies = [
     { name = "click" },
     { name = "livingproof-common" },
+    { name = "lz4" },
     { name = "mcap" },
+    { name = "zstandard" },
 ]
 
 [package.dev-dependencies]
@@ -93,7 +95,9 @@ dev = ">=3.12"
 requires-dist = [
     { name = "click", specifier = "==8.5.0" },
     { name = "livingproof-common", url = "https://github.com/Living-Proof-Labs/livingproof-common/releases/download/v1.0.0/livingproof_common-1.0.0-py3-none-any.whl" },
+    { name = "lz4", specifier = "==4.4.5" },
     { name = "mcap", specifier = "==1.3.0" },
+    { name = "zstandard", specifier = "==0.25.0" },
 ]
 
 [package.metadata.requires-dev]

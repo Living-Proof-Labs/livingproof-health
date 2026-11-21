@@ -22,6 +22,10 @@ a final integration state with no callback.
 Existing validators remain in place: sampled pose does not establish whole-trial
 parity or hardware health.
 
+See [bounded MCAP input and output](docs/bounded-replay.md) for default resource
+limits, configurable ceilings and atomic `replay --output` behavior. Run the full
+suite with `task dev:verify`; adversarial input tests require constrained Docker.
+
 ## Design boundaries
 
 - **Time is the only universal assumption.** Individual observations are optional,
@@ -73,13 +77,13 @@ Node is a development-only dependency; installed Health commands require no Java
 ```sh
 task setup
 task check
-task test
-task verify
+# Full tests, including bounded adversarial cases:
+task dev:verify
 ```
 
 - `task setup` runs `uv sync --locked --no-python-downloads`.
 - `task check` runs locked Ruff lint and formatting checks.
-- `task test` runs locked pytest and writes `artifacts/tests.xml`.
+- `task test` runs locked pytest inside the constrained container and writes `artifacts/tests.xml`.
 - `task verify` runs `task check` followed by `task test`.
 
 ### Docker and development container
@@ -103,8 +107,9 @@ To open an interactive shell inside the development container:
 task dev:shell
 ```
 
-Inside the development container (including `.devcontainer/devcontainer.json`),
-run `task setup` and `task verify` directly without nested Docker.
+Inside the resource-constrained Compose/development container (including the updated
+`.devcontainer/devcontainer.json`), run `task setup` and `timeout 300 task verify`
+directly without nested Docker. Adversarial workers verify the actual cgroup limit.
 
 ### Isolated wheel and host plugin verification
 
@@ -114,7 +119,7 @@ it alongside the pinned `livingproof` (`v1.5.4`) and `livingproof-common`
 consistency with `uv pip check`, and exercises lightweight discovery, `--help`,
 `--version`, bash completion, the no-command response, and replay/seek/assessment through the installed package.
 
-Run it online against the checksum-pinned GitHub releases:
+Inside that constrained container, run online against the checksum-pinned GitHub releases:
 
 ```sh
 LIVINGPROOF_NETWORK=1 task verify
@@ -126,10 +131,10 @@ Or offline against pre-downloaded, checksum-verified wheels in a local directory
 LIVINGPROOF_WHEEL_DIR=/path/to/wheels task verify
 ```
 
-Continuous integration runs `LIVINGPROOF_NETWORK=1 task verify` on both
-`ubuntu-24.04` (`amd64`) and `ubuntu-24.04-arm` (`arm64`) and checks workflows
-with `actionlint`. These fallback jobs run Task directly; they do not build or
-exercise Docker. Docker verification is a separate contributor/reviewer check.
+Continuous integration builds the local development image on both
+`ubuntu-24.04` (`amd64`) and `ubuntu-24.04-arm` (`arm64`), runs the full suite in
+constrained Docker, retains per-case resource measurements with JUnit, and checks
+workflows with `actionlint`. No adversarial case runs directly on the host.
 
 Test reporting fails verification for missing, malformed, empty, or inconsistent
 JUnit evidence and for failed check publication. Each suite must declare its
@@ -139,7 +144,7 @@ the job summary and retained JUnit artifact remain the evidence for those runs.
 
 ### Deferred infrastructure adoption
 
-The development image has not been published. CI uses the Ubuntu fallback above,
+The development image has not been published. CI builds it locally on the Ubuntu runners,
 and the development container builds the local Dockerfile.
 [Issue #4](https://github.com/Living-Proof-Labs/livingproof-health/issues/4) tracks
 image publication and migration of CI/development containers to a shared

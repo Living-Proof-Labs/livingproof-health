@@ -1,12 +1,32 @@
 {
   "name": "Living Proof Labs health",
-  "build": {"dockerfile": "../Dockerfile", "context": "..", "target": "development"},
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": "..",
+    "target": "development"
+  },
   "workspaceFolder": "/workspace/health",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/health,type=bind",
   "remoteUser": "vscode",
   "updateRemoteUserUID": true,
   "postCreateCommand": "task setup",
   "customizations": {
-    "vscode": {"extensions": ["ms-python.python"], "settings": {"python.defaultInterpreterPath": "/tmp/health-venv/bin/python"}}
+    "vscode": {
+      "extensions": [
+        "ms-python.python"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/tmp/health-venv/bin/python"
+      }
+    }
+  },
+  "runArgs": [
+    "--memory=512m",
+    "--memory-swap=512m",
+    "--cpus=2",
+    "--pids-limit=128"
+  ],
+  "containerEnv": {
+    "HEALTH_BOUNDED_TESTS": "1"
   }
 }

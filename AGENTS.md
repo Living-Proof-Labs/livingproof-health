@@ -15,6 +15,8 @@ Local additions:
 - Original repository content is Apache-2.0.
 - Use `task setup` and `task verify` inside the prepared Python 3.12
   environment or development container, or `task dev:verify` on a Docker host.
+- The recording resource-bound cases require constrained Docker (`task dev:verify`);
+  do not execute adversarial fixtures on the host.
 - Substantive changes stay in a draft PR until independent review.
 - Do not enable new registry/security permissions, repository settings, or
   deployment changes without explicit authorization.
