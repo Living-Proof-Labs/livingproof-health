@@ -26,6 +26,14 @@ tasks:
     cmds:
       - task: check
       - task: test
+  package:
+    desc: Build the release wheel, source archive, and SHA256SUMS into dist/
+    cmds:
+      - uv run --locked --no-sync --no-python-downloads python tools/package.py
+  smoke:
+    desc: Verify dist/ artifacts, checksums, isolated installation, and host CLI replay
+    cmds:
+      - uv run --locked --no-sync --no-python-downloads python tools/smoke.py
   dev:build:
     platforms: [linux]
     desc: Build the shared Docker development target
