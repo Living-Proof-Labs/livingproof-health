@@ -9,7 +9,7 @@ before resolving the P2. The original finding is in comment 7017492431.
 
 The Verify workflow prepares locked dependencies and checksum-verified integration
 wheels in a constrained Docker container. A second container reuses that cache
-and runs offline setup, the unchanged 229 tests and these probes with
+and runs offline setup, the existing 240 tests and these probes with
 `--network=none` and a 300-second timeout (forced termination after five more
 seconds). Do not run these scripts on the host. Before setup or test collection,
 verification fails closed without Docker, loopback-only networking and readable
@@ -38,7 +38,7 @@ and reader digests, exact input MCAPs, CLI commands/stdout/stderr/exit codes,
 target bytes and temporary-file assertions, cgroup values and memory/time measures.
 The recorded descendant RSS includes CLI and Git children (not an isolated CLI
 allocation delta). Complete expected case coverage and all assertions are required.
-The job also checks the separate existing JUnit has 229 passing cases and the
+The job also checks the separate existing JUnit has 240 passing cases and the
 existing bounds directory has 41 passing records; those tests are not rewritten.
 
 Reproduce only in a Docker environment that enforces the stated ceilings, from a

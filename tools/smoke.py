@@ -44,6 +44,34 @@ def _obtain_wheel(tmp_path: Path, filename: str, url: str, expected_sha256: str)
     return target
 
 
+def require_recorded_release(provenance, version, commit):
+    """The installed package must record this release version and source revision."""
+    if not isinstance(provenance, dict):
+        raise SystemExit("Installed package provenance is missing")
+    if provenance.get("package_version") != version:
+        raise SystemExit(
+            f"Expected package_version {version}, got {provenance.get('package_version')}"
+        )
+    identity = provenance.get("identity") if isinstance(provenance.get("identity"), dict) else {}
+    if identity.get("commit") != commit:
+        raise SystemExit(f"Expected revision {commit}, got {identity.get('commit')}")
+    if identity.get("state") != "clean":
+        raise SystemExit(f"Release provenance must be clean, got {identity.get('state')}")
+
+
+INSTALLED_PROVENANCE = """
+import json
+from pathlib import Path
+import livingproof_health
+from livingproof_common.versioning import PROVENANCE, read_provenance
+path = Path(livingproof_health.__file__).resolve().parent / PROVENANCE
+saved = read_provenance(path, "livingproof-health")
+if saved is None:
+    raise SystemExit("Installed package has no valid provenance")
+print(json.dumps(saved))
+"""
+
+
 def _verify_checksums(dist_dir: Path) -> tuple[Path, Path]:
     sums_path = dist_dir / "SHA256SUMS"
     if not sums_path.is_file():
@@ -72,7 +100,10 @@ def _verify_checksums(dist_dir: Path) -> tuple[Path, Path]:
 def main() -> None:
     dist_dir = ROOT / "dist"
     wheel, sdist = _verify_checksums(dist_dir)
-    expected_version = os.environ.get("VERSION")
+    expected_version = os.environ.get("VERSION") or None
+    expected_commit = os.environ.get("SOURCE_COMMIT") or None
+    if (expected_version is None) != (expected_commit is None):
+        raise SystemExit("VERSION and SOURCE_COMMIT must both be set for release smoke")
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
@@ -96,10 +127,8 @@ def main() -> None:
             rebuilt_prov = json.loads(rebuilt.read("livingproof_health/_build_provenance.json"))
             if orig_prov != rebuilt_prov:
                 raise SystemExit("Rebuilt sdist wheel provenance does not match dist wheel")
-            if expected_version and orig_prov.get("package_version") != expected_version:
-                raise SystemExit(
-                    f"Expected package_version {expected_version}, got {orig_prov.get('package_version')}"
-                )
+            if expected_version:
+                require_recorded_release(orig_prov, expected_version, expected_commit)
 
         # Install the built wheel + pinned host CLI in an isolated environment and replay fixture.
         uv = shutil.which("uv")
@@ -146,6 +175,18 @@ def main() -> None:
             raise SystemExit(
                 f"Expected Package: {expected_version} in version output: {version_out.stdout}"
             )
+        if expected_version:
+            recorded = subprocess.run(
+                [str(python), "-c", INSTALLED_PROVENANCE],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            if recorded.returncode != 0:
+                raise SystemExit(
+                    recorded.stderr.strip() or "Installed package provenance check failed"
+                )
+            require_recorded_release(json.loads(recorded.stdout), expected_version, expected_commit)
 
         replayed = subprocess.run(
             [

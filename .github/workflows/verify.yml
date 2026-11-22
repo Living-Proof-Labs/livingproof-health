@@ -152,25 +152,29 @@ jobs:
           persist-credentials: false
       - name: Build local test image
         run: docker build --target development -t health-test .
-      - name: Build and verify release packages and installed plugin
+      - name: Require the verified tag, then build and smoke the packages
         env:
           VERSION: ${{ needs.release.outputs.version }}
+          RELEASE_TAG: ${{ needs.release.outputs.git-tag }}
+          VERIFIED_COMMIT: ${{ github.sha }}
+          SOURCE_COMMIT: ${{ github.sha }}
         run: |
           docker run --rm --memory=512m --memory-swap=512m --cpus=2 --pids-limit=128 \
-            --user "$(id -u):$(id -g)" -e VERSION \
+            --user "$(id -u):$(id -g)" \
+            -e VERSION -e RELEASE_TAG -e VERIFIED_COMMIT -e SOURCE_COMMIT \
             -v "$PWD:/workspace/health" health-test \
-            timeout --kill-after=5 300 bash -c 'task setup && task package && task smoke'
+            timeout --kill-after=5 300 bash -c \
+            'python tools/release_check.py && task setup && task package && task smoke'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: release-packages
           path: dist/
           retention-days: 30
-      - name: Attach all assets before publication
+      - name: Resume matching draft assets, then publish once
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$RELEASE_TAG" dist/*.whl dist/*.tar.gz dist/SHA256SUMS
-      - name: Publish tested draft
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release edit "$RELEASE_TAG" --draft=false
+          DRAFT_CREATED: ${{ needs.release.outputs.draft-created }}
+        run: |
+          set -euo pipefail
+          python3 tools/release_assets.py "$RELEASE_TAG" dist/*.whl dist/*.tar.gz dist/SHA256SUMS
