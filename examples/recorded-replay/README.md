@@ -182,7 +182,15 @@ layout on a narrow screen. The viewer itself should initiate no external request
 
 Ordinary `task verify` checks exact lookup and safe embedding but does not
 establish actual browser rendering. The retained optional Playwright checker
-uses `file://`; use it only where the browser permits local files. Independent
-browser evidence for the local HTTP path is recorded on the pull request.
-Issue #1 stays open for whole-trial parity. The viewer does not replace
-validators or change the producer.
+uses `file://` and is only for browsers that already permit it. The earlier
+managed-browser refusal is retained as historical evidence, not a requirement
+to change browser policy. Loopback static HTTP meets the portability requirement;
+it serves the generated file, not a live data stream.
+
+Independent loopback Chromium checks covered [synthetic interaction and safe text
+rendering](https://github.com/Living-Proof-Labs/livingproof-health/pull/12#issuecomment-7057894281)
+and the [retained genuine G1 recording](https://github.com/Living-Proof-Labs/livingproof-health/pull/12#issuecomment-7057966037).
+The genuine check reused the verified artifact, inspected desktop and narrow-screen
+renders, and observed no external or ROS requests. See the [evidence record](../../docs/evidence/visual-replay/status.json)
+for exact scope. Issue #1 stays open for whole-trial parity. The viewer does not
+replace validators or change the producer.

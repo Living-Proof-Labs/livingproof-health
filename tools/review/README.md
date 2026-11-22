@@ -70,4 +70,6 @@ Hosted artifacts `reconstructed-review-<architecture>-<head>` are separate from
 `junit-report-<architecture>-<head>`, both retained for 30 days. The workflow logs
 retain the enclosing command. `summary.json` and every case JSON label provenance.
 Failure, missing evidence or timeout fails the job; artifact upload still runs.
-Keep #14 draft, #13/#1 open and visual #12 unchanged/browser-blocked.
+The original probe handoff kept #14 draft and #13/#1 open. The
+[viewer evidence](../../docs/evidence/visual-replay/status.json) for #12 is
+separate and does not close the broader parity work in #1.
