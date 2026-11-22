@@ -3,7 +3,9 @@
 Robot wellness and time-indexed health observation plugin for Living Proof Labs.
 
 Try the [offline recorded-replay → scenario demonstration](examples/recorded-replay/README.md)
-for portable JSON, exact seeks and a comparison of recorded height results.
+for portable JSON, exact seeks, a local HTML viewer and a comparison of recorded
+height results. The retained G1 viewer was [independently checked in Chromium over
+loopback HTTP](https://github.com/Living-Proof-Labs/livingproof-health/pull/12#issuecomment-7057966037).
 
 ## Status
 

@@ -2,7 +2,8 @@
 
 This development example runs the **installed Health host plugin** on the retained
 original G1 MCAP, then invokes the actual pinned scenario evaluator. It produces
-portable JSON and a readable report without a viewer, server or paid service.
+portable JSON, a readable report and a local HTML viewer without an external
+viewer, server or paid service.
 It is a Health integration example, not the general scenario binding runner.
 
 ## Prepare once, run offline
@@ -29,6 +30,7 @@ docker run --rm --network none --user "$(id -u):$(id -g)" \
 
 Open `artifacts/replay-example/demo/comparison.md`. The adjacent files are:
 
+- `viewer.html`: self-contained visual replay (see below).
 - `replay.json`: portable Health snapshots; nanosecond timestamps are strings.
 - `comparison.json`: input SHA-256, paired observation hash/run identity,
   expectation, frame, interval, measured sampling, each separate result and limits.
@@ -127,3 +129,68 @@ failures. Existing tests retain epoch-nanosecond, brief-dip and single-instant
 coverage. The image build excludes `.git`, so its Health version may use the
 source-archive fallback; independent-review evidence identifies the exact commit
 and resulting image digest. The development image is built locally, not published.
+
+## Portable visual replay
+
+The offline Docker example emits **`viewer.html`**. This single file embeds the replay,
+comparison, styles and JavaScript. It needs no ROS server, live topic stream,
+external assets or paid viewer.
+
+Serve the output directory on loopback, then open the viewer in your browser:
+
+```sh
+python3 -m http.server 8000 --bind 127.0.0.1 \
+  --directory artifacts/replay-example/demo
+```
+
+Open <http://127.0.0.1:8000/viewer.html>. If your browser also permits opening
+local files directly, File → Open is optional; it is not required.
+
+Presentation semantics are deliberately separate from `Replay.seek`:
+
+- The display selects the latest snapshot **at or before** the exact playhead.
+  `Replay.seek` remains first at/after, unchanged.
+- Duplicate timestamp ties use the **last snapshot in stable file order**.
+  The slider and previous/next controls move between distinct recorded times;
+  every duplicate remains inspectable in the full-snapshot section.
+- Before the first timestamp, there is no observation. After the last, the last
+  snapshot is displayed with an explicit age and after-last notice. Empty input
+  is valid and disables sample controls. Time-only input shows “Not reported”.
+- Between timestamps, the gap interval and exact observation age are visible.
+  Missing fields are never copied from another snapshot, even across duplicates.
+  There is no interpolation and no inference that old/absent evidence is healthy.
+- The slider uses only bounded array indices. Enter arbitrary nonnegative decimal
+  nanoseconds in **Exact playhead** and press Enter or Go to time. Lookup, playhead,
+  observation timestamp and age use JavaScript `BigInt`; epoch times do not pass
+  through `Number`. Arrow keys on the slider move between distinct timestamps.
+- Optional height/frame/posture are conveniences. All arbitrary optional items and
+  full duplicate snapshots remain inspectable as text. Scenario comparisons are
+  in their own section and do not describe health at the playhead.
+
+The HTML generator escapes raw-text script delimiters in embedded JSON. Robot
+labels, values, frames and provenance are assigned via `textContent`, never HTML.
+The artifact also declares a no-network content policy. Genuine fixture provenance
+and recorded-sample limitations remain visible; synthetic browser fixtures are
+explicitly labeled synthetic, not robot evidence.
+
+### Verify the viewer
+
+For a manual smoke test with the retained G1 recording, confirm there are
+614 snapshots over 0–12.26 seconds. Seek to 4440000000 nanoseconds: the displayed
+height should be 0.74637 m in frame `world`. Check keyboard stepping and the
+layout on a narrow screen. The viewer itself should initiate no external requests.
+
+Ordinary `task verify` checks exact lookup and safe embedding but does not
+establish actual browser rendering. The retained optional Playwright checker
+uses `file://` and is only for browsers that already permit it. The earlier
+managed-browser refusal is retained as historical evidence, not a requirement
+to change browser policy. Loopback static HTTP meets the portability requirement;
+it serves the generated file, not a live data stream.
+
+Independent loopback Chromium checks covered [synthetic interaction and safe text
+rendering](https://github.com/Living-Proof-Labs/livingproof-health/pull/12#issuecomment-7057894281)
+and the [retained genuine G1 recording](https://github.com/Living-Proof-Labs/livingproof-health/pull/12#issuecomment-7057966037).
+The genuine check reused the verified artifact, inspected desktop and narrow-screen
+renders, and observed no external or ROS requests. See the [evidence record](../../docs/evidence/visual-replay/status.json)
+for exact scope. Issue #1 stays open for whole-trial parity. The viewer does not
+replace validators or change the producer.
