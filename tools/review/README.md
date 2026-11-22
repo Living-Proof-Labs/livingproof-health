@@ -9,7 +9,7 @@ before resolving the P2. The original finding is in comment 7017492431.
 
 The Verify workflow prepares locked dependencies and checksum-verified integration
 wheels in a constrained Docker container. A second container reuses that cache
-and runs offline setup, the existing 240 tests and these probes with
+and runs offline setup, the existing 244 tests, including four visual replay cases, and these probes with
 `--network=none` and a 300-second timeout (forced termination after five more
 seconds). Do not run these scripts on the host. Before setup or test collection,
 verification fails closed without Docker, loopback-only networking and readable
@@ -38,7 +38,7 @@ and reader digests, exact input MCAPs, CLI commands/stdout/stderr/exit codes,
 target bytes and temporary-file assertions, cgroup values and memory/time measures.
 The recorded descendant RSS includes CLI and Git children (not an isolated CLI
 allocation delta). Complete expected case coverage and all assertions are required.
-The job also checks the separate existing JUnit has 240 passing cases and the
+The job also checks the separate existing JUnit has 244 passing cases and the
 existing bounds directory has 41 passing records; those tests are not rewritten.
 
 Reproduce only in a Docker environment that enforces the stated ceilings, from a
@@ -70,4 +70,6 @@ Hosted artifacts `reconstructed-review-<architecture>-<head>` are separate from
 `junit-report-<architecture>-<head>`, both retained for 30 days. The workflow logs
 retain the enclosing command. `summary.json` and every case JSON label provenance.
 Failure, missing evidence or timeout fails the job; artifact upload still runs.
-Keep #14 draft, #13/#1 open and visual #12 unchanged/browser-blocked.
+The original probe handoff kept #14 draft and #13/#1 open. The
+[viewer evidence](../../docs/evidence/visual-replay/status.json) for #12 is
+separate and does not close the broader parity work in #1.

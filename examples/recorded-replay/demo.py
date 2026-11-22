@@ -78,6 +78,20 @@ def summary_bridge(assessment):
     }
 
 
+def write_viewer(path, replay, report):
+    """Single local artifact; robot text is JSON data, never executable markup."""
+    directory = Path(__file__).parent
+    payload = json.dumps(
+        {"replay": json.loads(replay.to_json()), "report": report}, allow_nan=False
+    )
+    # Protect the HTML raw-text script boundary, including hostile </script> text.
+    payload = payload.replace("&", "\\u0026").replace("<", "\\u003c").replace(">", "\\u003e")
+    payload = payload.replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
+    template = (directory / "viewer.html").read_text()
+    template = template.replace("__PRESENTATION__", (directory / "presentation.js").read_text())
+    path.write_text(template.replace("__DATA__", payload))
+
+
 def describe_summary(summary):
     if not summary:
         return "Unavailable"
@@ -167,6 +181,7 @@ def demonstrate(source, output, minimum=0.5, frame="world", portable=False):
             "limitations": LIMIT,
         }
         write_json(staging / "comparison.json", report)
+        write_viewer(staging / "viewer.html", replay, report)
         original_status = (
             saved_result["status"]
             if saved_result
