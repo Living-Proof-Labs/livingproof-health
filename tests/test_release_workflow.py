@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Verify release workflow pin, gating, and packaging contract."""
+"""Verify release workflow pin, main-push gating, and packaging contract."""
 
 import json
 import os
@@ -42,21 +42,23 @@ def test_release_workflow_pins_same_guidelines_tag_as_renovate():
     assert expected_uses in text
 
 
-def test_release_and_publish_require_verified_main_and_explicit_activation():
+def test_release_and_publish_run_on_main_pushes_and_not_on_pull_requests():
     text = WORKFLOW.read_text(encoding="utf-8")
     assert "\npermissions:\n  contents: read\n" in text
+    assert "RELEASES_ENABLED" not in text
 
     release = _job_block(text, "release")
     assert "needs: verify" in release
-    assert "github.event_name == 'push'" in release
-    assert "github.ref == 'refs/heads/main'" in release
-    assert "vars.RELEASES_ENABLED == 'true'" in release
+    assert "    if: github.event_name == 'push' && github.ref == 'refs/heads/main'\n" in release
+    assert "pull_request" not in release
     assert "contents: write" in release
     assert "draft-release: true" in release
 
     publish = _job_block(text, "publish")
     assert "needs: release" in publish
-    assert "needs.release.outputs.draft-created == 'true'" in publish
+    assert "    if: needs.release.outputs.draft-created == 'true'\n" in publish
+    assert "pull_request" not in publish
+    assert "github.event_name" not in publish
     assert "ref: ${{ needs.release.outputs.git-tag }}" in publish
     assert "workflow_dispatch" not in text
     assert "--clobber" not in text

@@ -128,7 +128,7 @@ jobs:
               /tmp/actionlint -color'
   release:
     needs: verify
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.RELEASES_ENABLED == 'true'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: write
     uses: Living-Proof-Labs/collaboration-guidelines/.github/workflows/semantic-release.yml@v9.9.4
