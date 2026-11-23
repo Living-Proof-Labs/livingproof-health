@@ -2,7 +2,7 @@
 ARG PYTHON_IMAGE=python:3.12.12-slim-bookworm
 FROM ${PYTHON_IMAGE} AS python-base
 
-FROM ghcr.io/astral-sh/uv:0.12.23 AS uv-tools
+FROM ghcr.io/astral-sh/uv:0.13.9 AS uv-tools
 FROM node:22.23.5-bookworm-slim AS javascript-tools
 
 FROM python-base AS development
