@@ -78,7 +78,7 @@ def summary_bridge(assessment):
     }
 
 
-def write_viewer(path, replay, report):
+def write_viewer(path, replay, report, *, exclusive=False):
     """Single local artifact; robot text is JSON data, never executable markup."""
     directory = Path(__file__).parent
     payload = json.dumps(
@@ -89,7 +89,9 @@ def write_viewer(path, replay, report):
     payload = payload.replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
     template = (directory / "viewer.html").read_text()
     template = template.replace("__PRESENTATION__", (directory / "presentation.js").read_text())
-    path.write_text(template.replace("__DATA__", payload))
+    rendered = template.replace("__DATA__", payload)
+    with path.open("x" if exclusive else "w", encoding="utf-8") as stream:
+        stream.write(rendered)
 
 
 def describe_summary(summary):

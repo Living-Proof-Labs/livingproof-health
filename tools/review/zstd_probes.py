@@ -234,7 +234,7 @@ def main():
     cases = ET.parse(ROOT / "artifacts/tests.xml").findall(".//testcase")
     resources = list((ROOT / "artifacts/bounds").glob("*.json"))
     existing_ok = (
-        len(cases) == 259  # 249 existing cases plus ten details-viewer cases.
+        len(cases) == 260  # 249 existing cases plus eleven details-viewer cases.
         and all(
             not any(c.find(tag) is not None for tag in ("failure", "error", "skipped"))
             for c in cases

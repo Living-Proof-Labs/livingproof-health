@@ -104,3 +104,78 @@ def test_cli_refuses_invalid_details_without_output(tmp_path, case):
     )
     assert result.returncode == 2
     assert not output.exists()
+
+
+def test_two_cli_contenders_cannot_replace_winning_output(tmp_path):
+    # Hold both real CLI processes after their initial exists check, immediately
+    # before the actual renderer. No scheduler-dependent timing of the race.
+    runner = r"""
+import pathlib, runpy, sys, time
+script, ready, other, *args = sys.argv[1:]
+sys.path.insert(0, str(pathlib.Path(script).parent))
+import demo
+original = demo.write_viewer
+def rendezvous(*args, **kwargs):
+    pathlib.Path(ready).touch()
+    deadline = time.monotonic() + 15
+    while not pathlib.Path(other).exists():
+        if time.monotonic() > deadline:
+            raise RuntimeError("Second contender never reached final write")
+        time.sleep(0.01)
+    return original(*args, **kwargs)
+demo.write_viewer = rendezvous
+sys.argv = [script, *args]
+runpy.run_path(script, run_name="__main__")
+"""
+    output = tmp_path / "viewer.html"
+    processes = []
+    for index in range(2):
+        source = tmp_path / f"details-{index}.json"
+        raw = json.dumps(document([{"time_ns": str(index)}])).encode()
+        source.write_bytes(raw)
+        args = [
+            sys.executable,
+            "-c",
+            runner,
+            str(SCRIPT),
+            str(tmp_path / f"ready-{index}"),
+            str(tmp_path / f"ready-{1 - index}"),
+            str(source),
+            "--sha256",
+            hashlib.sha256(raw).hexdigest(),
+            "--run-id",
+            "recorded-run",
+            "--configuration",
+            "stock",
+            "--trial-index",
+            "1",
+            "--output",
+            str(output),
+        ]
+        processes.append(
+            subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        )
+    try:
+        results = [p.communicate(timeout=30) for p in processes]
+    finally:
+        for process in processes:
+            if process.poll() is None:
+                process.kill()
+                process.wait()
+    assert sorted(p.returncode for p in processes) == [0, 2], results
+    winner = next(i for i, p in enumerate(processes) if p.returncode == 0)
+    loser = 1 - winner
+    assert "Output already exists; choose a new file" in results[loser][1]
+    assert "Traceback" not in results[loser][1]
+    assert results[loser][0] == ""
+    winning_bytes = output.read_bytes()
+    embedded = (
+        winning_bytes.decode()
+        .split('<script id="data" type="application/json">')[1]
+        .split("</script>")[0]
+    )
+    assert json.loads(embedded)["replay"]["snapshots"] == [{"time_ns": str(winner)}]
+    # An ordinary later invocation must also leave every winning byte intact.
+    result, _ = invoke(tmp_path, document([{"time_ns": "99"}]))
+    assert result.returncode == 2
+    assert output.read_bytes() == winning_bytes

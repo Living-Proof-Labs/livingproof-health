@@ -94,7 +94,9 @@ def main():
         replay, report = load_details(
             args.details, args.sha256, args.run_id, args.configuration, args.trial_index
         )
-        write_viewer(args.output, replay, report)
+        write_viewer(args.output, replay, report, exclusive=True)
+    except FileExistsError:
+        parser.exit(2, "Cannot open Health details: Output already exists; choose a new file\n")
     except (OSError, ValueError) as exc:
         parser.exit(2, f"Cannot open Health details: {exc}\n")
     print(f"Open {args.output} locally. Observations only; do not publish this demo.")
