@@ -200,33 +200,67 @@ replace validators or change the producer.
 The Health-owned template can open a published `livingproof-evaluator-health/1`
 `health.json` without MCAP conversion or another simulation. This is a local
 viewer demonstration, not a production report artifact or a scenario comparison.
-Use the prepared development environment (`task setup`), then:
+Use the prepared development environment (`task setup`). The published report
+history can be reset, so begin at the
+[stable G1 latest report](https://docs.livingprooflabs.com/verification-reports-action/reports/g1/unitree-g1/stock-mujoco-hallway/latest/)
+each time; do not bookmark a particular run's data URL.
+
+1. Follow **Latest report** if the page does not redirect automatically. In that
+   report's **Health** card, open **Recorded data** and save the original file as
+   `health.json` in your working directory. Do not copy/paste or reformat its JSON.
+2. On the **same run's report page**, expand **Full lossless report**. Find
+   `advisory_results`, then `livingproof-health` → `advisory` → `details_file`.
+   Confirm its `uri` is `health.json` and copy its complete `sha256` value.
+   Do not use a descriptor, MCAP, or another run's checksum. If Health, Recorded
+   data, or this checksum is absent, stop: that report cannot supply this example.
+3. Replace the placeholder below with that report-published checksum. Verify the
+   downloaded bytes **before** reading their run/configuration/trial identity:
+
+```sh
+export REPORT_SHA256='<64-character checksum copied from the same report>'
+python - <<'PYTHON'
+import hashlib
+import json
+import os
+from pathlib import Path
+
+raw = Path("health.json").read_bytes()
+if hashlib.sha256(raw).hexdigest() != os.environ["REPORT_SHA256"]:
+    raise SystemExit("Checksum mismatch: return to the same report and download again")
+for item in json.loads(raw)["trials"]:
+    print(json.dumps(item["trial"], sort_keys=True))
+PYTHON
+```
+
+Computing a hash of arbitrary input and using that as the expected checksum is
+not provenance verification. The expected value must come from the report.
+If the history disappears during download, restart from latest; never mix a
+previous report's checksum with new data.
+
+4. Choose one printed trial. Replace the three placeholders below with its exact
+   `run_id`, `configuration`, and integer `index`. Keep the same verified file and
+   checksum. Choose a new output filename if `health-viewer.html` already exists.
 
 ```sh
 uv run --locked --no-sync python examples/recorded-replay/details.py health.json \
-  --sha256 3ed6d7a52d2c071cfa8d93b873d6cd0912db20692dd66d0fc77e621018b83acb \
-  --run-id walk-hallway-unitree-g1-stock-20261127T202136Z \
-  --configuration stock --trial-index 1 --output health-viewer.html
+  --sha256 "$REPORT_SHA256" \
+  --run-id '<run_id from the verified file>' \
+  --configuration '<configuration from that same trial>' \
+  --trial-index '<integer index from that same trial>' --output health-viewer.html
 ```
 
-For this example, download the original bytes from the
-[existing G1 run's details](https://docs.livingprooflabs.com/verification-reports-action/reports/g1/unitree-g1/stock-mujoco-hallway/runs/46062882502/health.json).
-Obtain the expected digest from a trusted evaluator result; computing a fresh hash
-of arbitrary input is not provenance verification. The command checks the original
-bytes and selects exactly one run/configuration/trial before writing any output.
-It refuses missing snapshots, count mismatches, invalid timestamps, a wrong digest,
-ambiguous trials, and an existing output file. The demo limits input to 16 MiB.
-Explicit empty snapshots remain empty, and time-only observations remain time-only.
+The command checks the original bytes again and selects exactly one trial before
+writing output. It refuses missing snapshots, count mismatches, invalid timestamps,
+a wrong digest, ambiguous trials, and an existing output file. The demo limits
+input to 16 MiB. Explicit empty snapshots remain empty, and time-only observations
+remain time-only.
 
-Open `health-viewer.html` locally in a browser. Enter `4440000000` in the exact
-playhead field: this **574-sample** run records position
-`(-0.46647, 0.0523, 0.74928)` m in `world`, with quaternion
-`(x=0.005116, y=0.017098, z=0.023234, w=0.999571)`.
-Its minimum recorded base height is `0.74814` m at `8460000000` ns.
-These values differ from the older 614-sample fixture. The robot recording reports
-no robot health telemetry; simulator poses do not fill that absence.
-The viewer keeps its existing as-of playhead semantics, not interpolation or the
-CLI's first-at-or-after seek semantics.
+Open `health-viewer.html` locally in a browser. Select a recorded time on the
+slider or enter its `time_ns` in the exact playhead field. Compare the displayed
+values with that snapshot in your verified file; sample counts, poses and times
+vary by run. Simulator poses do not fill absent robot telemetry. The viewer keeps
+its existing as-of playhead semantics, not interpolation or the CLI's
+first-at-or-after seek semantics.
 
 Trusted repository code renders JSON through the existing escaped data boundary
 and text-only DOM operations; its CSP disallows network requests. The evaluator
