@@ -12,7 +12,7 @@
 <div aria-live="polite" aria-atomic="true"><p id="state"></p><dl><div><dt>Playhead · ns</dt><dd id="playhead"></dd></div><div><dt>Observation · ns</dt><dd id="observed"></dd></div><div><dt>Observation age · ns</dt><dd id="age"></dd></div></dl></div>
 <p class="muted">Latest snapshot at or before the playhead. Last duplicate in file order wins. Previous/next select distinct recorded times; duplicate snapshots remain inspectable below. Before first: no observation. After last: last snapshot with explicit age.</p></section>
 <section class="panel" aria-labelledby="observation-title"><h2 id="observation-title">Observation values</h2><dl><div><dt>Base height · m (optional)</dt><dd id="height"></dd></div><div><dt>Frame (optional)</dt><dd id="frame"></dd></div><div><dt>Posture (optional)</dt><dd id="posture"></dd></div></dl><details open><summary>All optional items in this snapshot</summary><pre id="items"></pre></details><details><summary>Full snapshot &amp; duplicates at its timestamp</summary><pre id="duplicates"></pre></details></section>
-<section class="panel"><h2>Scenario comparison · separate from playhead</h2><p class="muted">Whole-recording example results, not the health of this displayed instant. Sampled-only scope; no whole-trial PASS.</p><details><summary>Explicit expectation and comparison results</summary><pre id="scenario"></pre></details></section>
+<section class="panel" id="scenario-panel"><h2>Scenario comparison · separate from playhead</h2><p class="muted">Whole-recording example results, not the health of this displayed instant. Sampled-only scope; no whole-trial PASS.</p><details><summary>Explicit expectation and comparison results</summary><pre id="scenario"></pre></details></section>
 </main><script id="data" type="application/json">__DATA__</script><script>
 __PRESENTATION__
 'use strict';
@@ -25,6 +25,7 @@ const json = value => JSON.stringify(value, null, 2);
 text('provenance', data.report.input.provenance);
 text('identity', json(data.report.input));
 text('coverage', data.report.limitations);
+$('scenario-panel').hidden = data.report.observations_only === true;
 text('scenario', json({expectation:data.report.expectation, health:data.report.health,
   scenario_from_replay_summary:data.report.scenario_from_replay_summary,
   original_summary:data.report.original_summary,

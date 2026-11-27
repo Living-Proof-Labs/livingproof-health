@@ -194,3 +194,46 @@ The genuine check reused the verified artifact, inspected desktop and narrow-scr
 renders, and observed no external or ROS requests. See the [evidence record](../../docs/evidence/visual-replay/status.json)
 for exact scope. Issue #1 stays open for whole-trial parity. The viewer does not
 replace validators or change the producer.
+
+## Open existing evaluator details locally
+
+The Health-owned template can open a published `livingproof-evaluator-health/1`
+`health.json` without MCAP conversion or another simulation. This is a local
+viewer demonstration, not a production report artifact or a scenario comparison.
+Use the prepared development environment (`task setup`), then:
+
+```sh
+uv run --locked --no-sync python examples/recorded-replay/details.py health.json \
+  --sha256 3ed6d7a52d2c071cfa8d93b873d6cd0912db20692dd66d0fc77e621018b83acb \
+  --run-id walk-hallway-unitree-g1-stock-20261127T202136Z \
+  --configuration stock --trial-index 1 --output health-viewer.html
+```
+
+For this example, download the original bytes from the
+[existing G1 run's details](https://docs.livingprooflabs.com/verification-reports-action/reports/g1/unitree-g1/stock-mujoco-hallway/runs/46062882502/health.json).
+Obtain the expected digest from a trusted evaluator result; computing a fresh hash
+of arbitrary input is not provenance verification. The command checks the original
+bytes and selects exactly one run/configuration/trial before writing any output.
+It refuses missing snapshots, count mismatches, invalid timestamps, a wrong digest,
+ambiguous trials, and an existing output file. The demo limits input to 16 MiB.
+Explicit empty snapshots remain empty, and time-only observations remain time-only.
+
+Open `health-viewer.html` locally in a browser. Enter `4440000000` in the exact
+playhead field: this **574-sample** run records position
+`(-0.46647, 0.0523, 0.74928)` m in `world`, with quaternion
+`(x=0.005116, y=0.017098, z=0.023234, w=0.999571)`.
+Its minimum recorded base height is `0.74814` m at `8460000000` ns.
+These values differ from the older 614-sample fixture. The robot recording reports
+no robot health telemetry; simulator poses do not fill that absence.
+The viewer keeps its existing as-of playhead semantics, not interpolation or the
+CLI's first-at-or-after seek semantics.
+
+Trusted repository code renders JSON through the existing escaped data boundary
+and text-only DOM operations; its CSP disallows network requests. The evaluator
+supplies data, never HTML or JavaScript. The digest proves byte identity against
+the supplied expectation, not the truth of the observations or hardware origin.
+**Do not upload this generated demo to the reports origin.** A future trusted
+static viewer and validated same-origin data link need a separate integration:
+the current generic Reporter details link permits JSON/text, not a viewer URL.
+No Action, Reporter, Verifier, contract, Pages, or publication changes are included.
+This does not resolve #1's whole-trial parity work.
