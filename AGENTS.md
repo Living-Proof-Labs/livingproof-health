@@ -1,7 +1,7 @@
 # Agent instructions
 
 <!-- renovate: guidelines -->
-[collaboration-guidelines v9.10.3](https://github.com/Living-Proof-Labs/collaboration-guidelines/blob/v9.10.3/AGENTS.md)
+[collaboration-guidelines v9.10.5](https://github.com/Living-Proof-Labs/collaboration-guidelines/blob/v9.10.5/AGENTS.md)
 applies, with its procedures, to every change in this repository.
 Resolved adoption commit: `6b3a47cde924e70b9dfbaa3cbda2e9fbd55aebd5`.
 
