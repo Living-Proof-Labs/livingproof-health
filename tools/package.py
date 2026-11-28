@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import runpy
 import shutil
 import subprocess
 import zipfile
@@ -52,7 +53,12 @@ def main() -> None:
     if not provenance or provenance.get("package_version") != version:
         raise ValueError(f"Wheel provenance package_version does not match {version}: {provenance}")
 
-    files = [wheel, sdist]
+    renderer = runpy.run_path(
+        str(Path(__file__).resolve().parents[1] / "examples/recorded-replay/static_viewer.py")
+    )
+    viewer = out / "livingproof-health-viewer.html"
+    viewer.write_text(renderer["render_static_viewer"](), encoding="utf-8")
+    files = [wheel, sdist, viewer]
     (out / "SHA256SUMS").write_text(
         "".join(f"{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.name}\n" for p in files),
         encoding="utf-8",

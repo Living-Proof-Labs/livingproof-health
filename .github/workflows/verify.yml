@@ -177,4 +177,4 @@ jobs:
           DRAFT_CREATED: ${{ needs.release.outputs.draft-created }}
         run: |
           set -euo pipefail
-          python3 tools/release_assets.py "$RELEASE_TAG" dist/*.whl dist/*.tar.gz dist/SHA256SUMS
+          python3 tools/release_assets.py "$RELEASE_TAG" dist/*.whl dist/*.tar.gz dist/livingproof-health-viewer.html dist/SHA256SUMS

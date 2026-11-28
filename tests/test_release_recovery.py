@@ -180,7 +180,8 @@ def _fake_github(releases, full_by_id, asset_bytes):
     def runner(command, check, capture_output):
         calls.append(list(command))
         if command[:3] == ["gh", "release", "upload"]:
-            path, name = command[4].rsplit("#", 1)
+            path = command[4]
+            name = Path(path).name
             uploads.append((name, Path(path).read_bytes()))
             return _result()
         if "--method" in command and "PATCH" in command:

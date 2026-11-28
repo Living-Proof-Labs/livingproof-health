@@ -4,6 +4,7 @@
 import hashlib
 import json
 import os
+import runpy
 from pathlib import Path
 import shutil
 import subprocess
@@ -88,12 +89,16 @@ def _verify_checksums(dist_dir: Path) -> tuple[Path, Path]:
     if len(wheels) != 1 or len(sdists) != 1:
         raise SystemExit(f"Expected exactly one wheel and one sdist in {dist_dir}")
     wheel, sdist = wheels[0], sdists[0]
-    if set(recorded) != {wheel.name, sdist.name}:
+    viewer = dist_dir / "livingproof-health-viewer.html"
+    if set(recorded) != {wheel.name, sdist.name, viewer.name}:
         raise SystemExit(f"SHA256SUMS entries {sorted(recorded)} do not match dist artifacts")
-    for artifact in (wheel, sdist):
+    for artifact in (wheel, sdist, viewer):
         actual = hashlib.sha256(artifact.read_bytes()).hexdigest()
         if actual != recorded[artifact.name]:
             raise SystemExit(f"Checksum mismatch for {artifact.name}")
+    renderer = runpy.run_path(str(ROOT / "examples/recorded-replay/static_viewer.py"))
+    if viewer.read_bytes() != renderer["render_static_viewer"]().encode("utf-8"):
+        raise SystemExit("Release viewer differs from owned source")
     return wheel, sdist
 
 

@@ -69,7 +69,7 @@ def test_release_and_publish_run_on_main_pushes_and_not_on_pull_requests():
     assert check < package < smoke < resume
     assert "VERIFIED_COMMIT: ${{ github.sha }}" in publish
     assert "SOURCE_COMMIT: ${{ github.sha }}" in publish
-    assert "dist/*.whl dist/*.tar.gz dist/SHA256SUMS" in publish
+    assert "dist/*.whl dist/*.tar.gz dist/livingproof-health-viewer.html dist/SHA256SUMS" in publish
     assert "DRAFT_CREATED: ${{ needs.release.outputs.draft-created }}" in publish
     smoke_source = (ROOT / "tools/smoke.py").read_text(encoding="utf-8")
     assert "SOURCE_COMMIT" in smoke_source
