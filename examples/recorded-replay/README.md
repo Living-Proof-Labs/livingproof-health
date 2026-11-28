@@ -271,3 +271,64 @@ static viewer and validated same-origin data link need a separate integration:
 the current generic Reporter details link permits JSON/text, not a viewer URL.
 No Action, Reporter, Verifier, contract, Pages, or publication changes are included.
 This does not resolve #1's whole-trial parity work.
+
+## One-click local card preview
+
+This development preview adds a clickable **Health** card in front of the same
+replay controls. It is clearly labelled as a local G1 card preview, not a real
+production report. It does not change grading or any published report.
+
+First follow **Open existing evaluator details locally** above to save unchanged
+`health.json`, verify it against the **same report's published checksum**, and
+print its trial identities. In that prepared development environment, replace
+these placeholders with the selected trial's values:
+
+```sh
+uv run --locked --no-sync python examples/recorded-replay/preview.py health.json \
+  --sha256 "$REPORT_SHA256" \
+  --run-id '<run_id from the verified file>' \
+  --configuration '<configuration from that same trial>' \
+  --trial-index '<integer index from that same trial>' --output health-preview
+python3 -m http.server 8000 --bind 127.0.0.1 --directory health-preview
+```
+
+Open <http://127.0.0.1:8000/> and click **Open replay**. The link selects that exact
+run/configuration/trial. Use the slider, previous/next buttons, or exact time field
+(Enter submits) to inspect recorded snapshots. Sample values come from the input,
+not a fixed pose expectation. Stop the server with Ctrl+C. Choose a new output
+directory to build another preview; existing previews are never overwritten.
+
+The builder reuses the local CLI's validation and copies original JSON bytes.
+The trusted static viewer contains no run data or evaluator-supplied executable
+content. At click time it fetches only `data/<name>.json` beside the viewer, without
+credentials or redirects, with a 15-second timeout and a 16 MiB limit. It verifies
+SHA-256 **before parsing**, then checks the selected trial, sample count and
+snapshot timestamps. Invalid/missing data gives an error instead of observations.
+Empty and time-only recordings are allowed. Robot telemetry stays separate from
+simulator observations; missing telemetry is never a healthy verdict.
+
+The checksum and trial in a link are expectations, not a signature: a party who
+can rewrite both the link and data can rewrite the preview. Use only expectations
+from the trusted source report. Arbitrary query strings, remote origins, path
+traversal and executable data links are not supported. JavaScript and HTTP on
+loopback are required; opening `viewer.html` directly as a file is not supported.
+
+**Keep this preview local.** Production integration needs a separately approved
+generic viewer-link capability and versioned Health hosting. This slice does not
+widen Reporter's data-link contract or publish HTML through evaluator artifacts.
+Related work: #1 (broader Health observations) and #5 (manual/hosting); neither is
+completed by this preview.
+
+For review, `task verify` includes Node tests for the loader and a Python test of
+the actual preview command. In a prepared browser-test environment with Playwright
+and `/usr/bin/chromium`, keep the preview server running and execute:
+
+```sh
+node tools/review/static_preview_browser.cjs health-preview http://127.0.0.1:8000/
+```
+
+That optional probe uses the existing G1 recording with a sample at 4.44 seconds,
+compares the displayed pose directly with those JSON bytes, tests Enter and arrow
+keys at 360/390/430 px, and checks stale-data refusal, missing data and a labelled
+synthetic time-only case. Screenshots stay inside the local preview directory.
+It is not a simulation or a requirement to install browser tooling on shared hosts.
