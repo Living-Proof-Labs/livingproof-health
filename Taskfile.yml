@@ -27,7 +27,7 @@ tasks:
       - task: check
       - task: test
   package:
-    desc: Build the release wheel, source archive, and SHA256SUMS into dist/
+    desc: Build the release wheel, source archive, standalone viewer, and SHA256SUMS into dist/
     cmds:
       - uv run --locked --no-sync --no-python-downloads python tools/package.py
   smoke:

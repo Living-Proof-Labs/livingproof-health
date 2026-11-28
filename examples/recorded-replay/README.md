@@ -332,3 +332,20 @@ compares the displayed pose directly with those JSON bytes, tests Enter and arro
 keys at 360/390/430 px, and checks stale-data refusal, missing data and a labelled
 synthetic time-only case. Screenshots stay inside the local preview directory.
 It is not a simulation or a requirement to install browser tooling on shared hosts.
+
+## Trusted standalone release asset
+
+Health releases include `livingproof-health-viewer.html` and its entry in the
+release's `SHA256SUMS`. Packaging generates these bytes deterministically from
+Health's own template, presentation code and loader—the same renderer as this
+preview—with no recording, report or run identity bundled. The existing draft
+release uploads and checks all assets before publication; consumers must select
+an immutable published tag and verify the HTML checksum before serving it.
+
+The viewer accepts the existing fragment fields `file`, `sha256`, `run`,
+`configuration` and `trial`. Data remains adjacent under `data/` on the same origin;
+the loader verifies its bounded response before parsing and refuses invalid data.
+This asset is trusted executable code, not evaluator output. The Health evaluator
+continues to return data only. See related evaluator-health issue #13 and Action
+#74 for the separately reviewed report integration. This PR does not publish a
+viewer site or change the evaluator descriptor.

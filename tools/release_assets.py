@@ -149,13 +149,12 @@ class GitHubReleaseStore:
         return result.stdout
 
     def upload(self, tag, name, data):
-        descriptor, path = tempfile.mkstemp(prefix="health-asset-")
-        try:
-            with os.fdopen(descriptor, "wb") as handle:
-                handle.write(data)
-            result = self._gh(["gh", "release", "upload", tag, f"{path}#{name}"])
-        finally:
-            os.unlink(path)
+        if Path(name).name != name or name in {"", ".", ".."}:
+            raise ReleaseError("Release asset name must be a basename")
+        with tempfile.TemporaryDirectory(prefix="health-assets-") as directory:
+            path = Path(directory) / name
+            path.write_bytes(data)
+            result = self._gh(["gh", "release", "upload", tag, str(path)])
         if result.returncode != 0:
             raise ReleaseError(f"Unable to upload {name}")
 
